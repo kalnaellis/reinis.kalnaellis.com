@@ -4,347 +4,145 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="dark" />
-  <title>Reinis Kalnaellis · Human Creator</title>
-  <meta name="description" content="Director / Producer / Photographer / Digital Artist. A playful 3D portfolio with animated typography, traffic-sign text, and tiny bits of gameplay." />
+  <title>Reinis Kalnaellis · Digital Artist Gallery</title>
+  <meta name="description" content="A 10×10m WebGL gallery room with augmented posters, spatial sound, and interactive media (images, music, YouTube)." />
   <style>
     :root{
-      --bg:#07070a;
-      --fg:#f1f1f3;
-      --muted:rgba(241,241,243,.72);
-      --muted2:rgba(241,241,243,.48);
-      --card:rgba(255,255,255,.06);
-      --card2:rgba(255,255,255,.10);
-      --stroke:rgba(255,255,255,.16);
-      --shadow: 0 16px 60px rgba(0,0,0,.55);
-      --radius: 22px;
+      --bg:#050508;
+      --fg:#f4f4f6;
+      --muted:rgba(244,244,246,.7);
+      --muted2:rgba(244,244,246,.52);
+      --panel:rgba(255,255,255,.06);
+      --panel2:rgba(255,255,255,.10);
+      --stroke:rgba(255,255,255,.14);
+      --shadow: 0 18px 70px rgba(0,0,0,.55);
+      --r: 22px;
     }
     *{box-sizing:border-box}
-    html,body{height:100%; margin:0; background:var(--bg); color:var(--fg); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji"; }
+    html,body{height:100%; margin:0; background:var(--bg); color:var(--fg); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; overflow:hidden;}
     a{color:inherit}
-    #three {
-      position:fixed; inset:0; width:100%; height:100%;
-      display:block;
-      background: radial-gradient(1200px 900px at 70% 20%, rgba(255,255,255,.08), transparent 55%),
-                  radial-gradient(900px 700px at 10% 80%, rgba(255,255,255,.06), transparent 60%),
-                  linear-gradient(180deg, #040407, #0b0b12);
-      touch-action:none;
-    }
-    #ui {
-      position:relative;
-      min-height:100%;
-      pointer-events:none;
-    }
-
-    /* Top HUD */
-    .topbar{
-      position:fixed; top:0; left:0; right:0;
-      padding: 18px 16px;
-      display:flex; justify-content:space-between; align-items:flex-start;
-      gap:16px;
-      z-index:10;
-      pointer-events:none;
-    }
-    .nav{
-      pointer-events:auto;
+    #c{position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none;}
+    #ui{position:fixed; inset:0; pointer-events:none; z-index:20;}
+    .top{
+      position:absolute; left:12px; top:12px;
       display:flex; flex-direction:column; gap:10px;
-      padding:12px 12px;
-      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
-      border:1px solid var(--stroke);
-      border-radius: 18px;
-      backdrop-filter: blur(10px);
-      box-shadow: var(--shadow);
-      width:min(260px, 46vw);
-    }
-    .brandMini{
       pointer-events:auto;
-      display:flex; flex-direction:column; gap:8px;
-      padding:12px 14px;
+      width:min(420px, calc(100vw - 24px));
+    }
+    .card{
       background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
       border:1px solid var(--stroke);
-      border-radius: 18px;
-      backdrop-filter: blur(10px);
+      border-radius: var(--r);
       box-shadow: var(--shadow);
-      align-items:flex-end;
-      text-align:right;
-      width:min(250px, 46vw);
+      backdrop-filter: blur(12px);
+      padding: 14px 14px;
     }
-    .nav a{
-      text-decoration:none;
-      display:flex; align-items:center; justify-content:space-between;
-      padding:10px 12px;
-      border-radius: 14px;
-      border:1px solid transparent;
-      color:var(--fg);
-      background:rgba(255,255,255,.02);
-      font-weight:650;
-      letter-spacing:.06em;
-      text-transform:uppercase;
-      font-size:12px;
+    .title{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
     }
-    .nav a:hover{border-color:var(--stroke); background:rgba(255,255,255,.05)}
-    .nav small{color:var(--muted); font-weight:500; text-transform:none; letter-spacing:0; margin-left:8px}
-    .brandMini .tag{
-      font-weight:800;
+    .title h1{
+      margin:0;
+      font-size: 14px;
       letter-spacing:.14em;
       text-transform:uppercase;
-      font-size:11px;
-      color:var(--muted);
-    }
-    .brandMini .stack{
-      display:flex; flex-direction:column; gap:2px;
-      font-weight:800;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      font-size:12px;
-      color:var(--fg);
-    }
-
-    /* Hero */
-    .hero{
-      position:relative;
-      padding: 110px 16px 24px;
-      display:grid;
-      grid-template-columns: 1.15fr .85fr;
-      gap:16px;
-      max-width:1100px;
-      margin:0 auto;
-      z-index:3;
-    }
-    .heroCard{
-      pointer-events:auto;
-      padding: 22px 20px;
-      border-radius: var(--radius);
-      border:1px solid var(--stroke);
-      background:linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.04));
-      backdrop-filter: blur(10px);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-      position:relative;
-    }
-    .heroTitle{
-      font-size: clamp(42px, 6vw, 84px);
-      line-height:.9;
-      margin:0;
-      letter-spacing:-.02em;
       font-weight:900;
-      text-transform:uppercase;
     }
-    .heroTitle span{
-      display:inline-block;
-      opacity:.92;
-    }
-    .subline{
-      margin-top:12px;
+    .title .sub{
+      margin-top:6px;
       color:var(--muted);
-      font-size: 15px;
-      line-height:1.45;
-      max-width: 52ch;
-    }
-    .typedWrap{
-      margin-top:14px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       font-size: 13px;
-      color:rgba(241,241,243,.86);
-      background:rgba(0,0,0,.22);
-      border:1px dashed rgba(255,255,255,.20);
-      border-radius: 16px;
-      padding: 12px 14px;
-      width: fit-content;
-      max-width: 100%;
+      line-height:1.35;
     }
-    .ctaRow{
-      margin-top: 16px;
-      display:flex; flex-wrap:wrap; gap:10px;
-      pointer-events:auto;
-    }
+    .btnRow{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
     .btn{
       appearance:none; border:none; cursor:pointer;
+      padding: 10px 12px;
       border-radius: 999px;
-      padding: 12px 14px;
       background: rgba(255,255,255,.10);
-      border:1px solid rgba(255,255,255,.20);
+      border:1px solid rgba(255,255,255,.18);
       color:var(--fg);
-      font-weight:750;
-      letter-spacing:.08em;
+      font-weight:800;
+      letter-spacing:.10em;
       text-transform:uppercase;
-      font-size: 12px;
-      display:inline-flex; align-items:center; gap:10px;
+      font-size: 11px;
       user-select:none;
     }
     .btn:hover{background:rgba(255,255,255,.14)}
-    .btn.primary{
-      background: rgba(255,255,255,.18);
-      border-color: rgba(255,255,255,.28);
-    }
-    .btn .dot{
-      width:9px; height:9px; border-radius:999px;
-      background: rgba(241,241,243,.85);
-      box-shadow: 0 0 0 3px rgba(241,241,243,.16);
-    }
-
-    /* Prompt card */
-    .promptCard{
-      display:flex; flex-direction:column; gap:12px;
-    }
-    .promptCard h3{
-      margin:0;
-      font-size: 14px;
-      text-transform:uppercase;
-      letter-spacing:.12em;
-      color:rgba(241,241,243,.82);
-    }
-    .pill{
-      width:100%;
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      padding: 12px 14px;
-      border-radius: 16px;
-      background: rgba(0,0,0,.20);
-      border:1px solid rgba(255,255,255,.18);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      color:rgba(241,241,243,.9);
-      cursor:pointer;
-      user-select:none;
-    }
-    .pill:hover{border-color:rgba(255,255,255,.28)}
-    .pill small{color:var(--muted2); font-family:inherit}
-    .icons{
-      display:flex; gap:8px; align-items:center;
-      opacity:.8;
-    }
-    .icon{
-      width:18px; height:18px; border-radius:6px;
-      border:1px solid rgba(255,255,255,.22);
-      display:grid; place-items:center;
-      font-size: 12px;
-      background:rgba(255,255,255,.06);
-    }
-
-    /* Sections */
-    main{
-      position:relative;
-      max-width:1100px;
-      margin:0 auto;
-      padding: 6px 16px 120px;
-      z-index:3;
-      pointer-events:none;
-    }
-    section{
-      margin-top: 18px;
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:16px;
-    }
-    .card{
-      pointer-events:auto;
-      border-radius: var(--radius);
-      border:1px solid var(--stroke);
-      background: rgba(255,255,255,.06);
-      backdrop-filter: blur(10px);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-      position:relative;
-      min-height: 230px;
-    }
-    .cardHeader{
-      padding: 16px 16px 10px;
-      display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
-    }
-    .cardTitle{
-      margin:0;
-      font-size: 14px;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      font-weight:900;
-    }
-    .cardMeta{
-      color:var(--muted2);
-      font-size: 12px;
-      margin-top:6px;
-    }
-    .cardBody{
-      padding: 0 16px 16px;
-      color:var(--muted);
-      font-size: 14px;
-      line-height: 1.5;
-    }
-    .cardGrid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:10px;
-      margin-top:10px;
-    }
-    .work{
-      display:flex; align-items:stretch; gap:12px;
-      padding: 12px 12px;
-      border-radius: 18px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(0,0,0,.18);
-      cursor:pointer;
-    }
-    .work:hover{border-color:rgba(255,255,255,.20); background:rgba(0,0,0,.24)}
-    .thumb{
-      width:54px; height:54px;
-      border-radius: 16px;
-      border:1px solid rgba(255,255,255,.15);
-      background: linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.04));
-      flex:0 0 auto;
-      position:relative;
-      overflow:hidden;
-    }
-    .thumb::after{
-      content:"";
-      position:absolute; inset:-40%;
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.28), transparent 55%);
-      transform: rotate(18deg);
-      opacity:.85;
-    }
-    .workText{min-width:0}
-    .workText b{
-      display:block;
-      font-size: 14px;
-      color:rgba(241,241,243,.92);
-      margin-bottom:4px;
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    }
-    .workText span{
-      display:block;
-      font-size: 12px;
-      color:var(--muted2);
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    }
-    .chips{
-      display:flex; flex-wrap:wrap; gap:8px;
-      margin-top:12px;
-      pointer-events:auto;
-    }
+    .btn.primary{background:rgba(255,255,255,.18); border-color:rgba(255,255,255,.26)}
+    .btn.tiny{padding:8px 10px; font-size:10px}
+    .chipRow{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
     .chip{
+      cursor:pointer;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.16);
+      background:rgba(0,0,0,.18);
+      padding: 8px 10px;
       font-size:11px;
       letter-spacing:.10em;
       text-transform:uppercase;
-      padding: 8px 10px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.16);
-      background:rgba(255,255,255,.04);
-      color:rgba(241,241,243,.82);
+      color:rgba(244,244,246,.86);
       user-select:none;
-      cursor:pointer;
     }
-    .chip:hover{background:rgba(255,255,255,.07)}
+    .chip:hover{background:rgba(0,0,0,.26)}
+    .chip.active{background:rgba(255,255,255,.10); border-color:rgba(255,255,255,.26)}
+    .hud{
+      position:absolute; left:12px; bottom:12px;
+      pointer-events:auto;
+      width:min(420px, calc(100vw - 24px));
+    }
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+    .line{color:var(--muted2); font-size:12px; line-height:1.35}
+    .k{
+      display:flex; justify-content:space-between; gap:10px;
+      border-top:1px solid rgba(255,255,255,.10);
+      margin-top:10px; padding-top:10px;
+      color:rgba(244,244,246,.84);
+      font-size:12px;
+    }
+
+    /* Mobile joystick */
+    #stick{
+      position:absolute;
+      right:12px;
+      bottom:12px;
+      width:120px; height:120px;
+      pointer-events:auto;
+      display:none;
+      touch-action:none;
+      z-index:21;
+    }
+    .ring{
+      width:100%; height:100%;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.05);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      position:relative;
+    }
+    .knob{
+      width:46px; height:46px;
+      border-radius:999px;
+      background: rgba(255,255,255,.14);
+      border:1px solid rgba(255,255,255,.22);
+      position:absolute;
+      left:50%; top:50%;
+      transform: translate(-50%,-50%);
+    }
 
     /* Modal */
-    #modalBackdrop{
+    #backdrop{
       position:fixed; inset:0;
-      background: rgba(0,0,0,.68);
+      background: rgba(0,0,0,.72);
       display:none;
-      align-items:center;
-      justify-content:center;
-      z-index:50;
-      pointer-events:auto;
+      align-items:center; justify-content:center;
       padding: 16px;
+      z-index:60;
+      pointer-events:auto;
     }
     #modal{
-      width:min(860px, 100%);
-      max-height:min(80vh, 760px);
+      width:min(980px, 100%);
+      max-height:min(86vh, 780px);
       overflow:auto;
       border-radius: 26px;
       border:1px solid rgba(255,255,255,.18);
@@ -352,17 +150,14 @@
       backdrop-filter: blur(14px);
       box-shadow: 0 30px 90px rgba(0,0,0,.7);
     }
-    .modalTop{
+    .mTop{
       display:flex; justify-content:space-between; align-items:flex-start; gap:14px;
-      padding: 18px 18px 10px;
+      padding: 16px 16px 10px;
       border-bottom:1px solid rgba(255,255,255,.10);
     }
-    .modalTop h2{
-      margin:0;
-      font-size: 18px;
-      letter-spacing:.02em;
-    }
-    .xBtn{
+    .mTop h2{margin:0; font-size:16px; letter-spacing:.02em}
+    .mSub{margin-top:4px; color:var(--muted2); font-size:12px; letter-spacing:.10em; text-transform:uppercase}
+    .x{
       border:none; cursor:pointer;
       background: rgba(255,255,255,.08);
       border:1px solid rgba(255,255,255,.16);
@@ -371,336 +166,70 @@
       border-radius: 14px;
       font-weight:900;
     }
-    .xBtn:hover{background:rgba(255,255,255,.12)}
-    .modalBody{
-      padding: 0 18px 18px;
-      color:rgba(241,241,243,.82);
-      line-height:1.6;
-      font-size: 14px;
-    }
-    .modalBody ul{padding-left: 20px}
-    .kv{
-      display:grid;
-      grid-template-columns: 120px 1fr;
-      gap:10px;
-      margin: 10px 0 0;
-      padding: 12px;
-      background: rgba(0,0,0,.18);
+    .x:hover{background:rgba(255,255,255,.12)}
+    .mBody{padding: 14px 16px 16px; color:rgba(244,244,246,.84); line-height:1.6; font-size:14px;}
+    .mediaBox{
+      background: rgba(0,0,0,.22);
       border:1px solid rgba(255,255,255,.12);
       border-radius: 18px;
-      font-size: 13px;
+      padding: 12px;
+      overflow:hidden;
+      margin-top: 10px;
     }
-    .kv b{color:rgba(241,241,243,.95)}
-    .hr{
-      height:1px; background:rgba(255,255,255,.10);
-      margin: 14px 0;
-    }
+    .mediaBox img{width:100%; height:auto; display:block; border-radius: 14px; border:1px solid rgba(255,255,255,.10)}
+    .mediaBox iframe{width:100%; aspect-ratio:16/9; border:0; border-radius: 14px; border:1px solid rgba(255,255,255,.10)}
+    .mediaBox audio{width:100%}
+    code{background:rgba(0,0,0,.22); border:1px solid rgba(255,255,255,.12); padding:2px 6px; border-radius:10px}
+    .hr{height:1px; background:rgba(255,255,255,.10); margin: 12px 0}
 
-    /* Footer */
-    footer{
-      pointer-events:none;
-      max-width:1100px;
-      margin:0 auto;
-      padding: 0 16px 34px;
-      color: var(--muted2);
-      font-size: 12px;
-      z-index:3;
-      position:relative;
-    }
-    footer .row{
-      pointer-events:auto;
-      display:flex; flex-wrap:wrap; gap:10px; align-items:center;
-    }
-    footer a{
-      pointer-events:auto;
-      text-decoration:none;
-      border-bottom:1px dashed rgba(255,255,255,.25);
-    }
-
-    /* HUD overlay for gameplay */
-    #hud{
-      position:fixed;
-      bottom:16px;
-      left:16px;
-      z-index:12;
-      pointer-events:none;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-    }
-    .hudBox{
-      width:min(320px, 72vw);
-      pointer-events:auto;
-      padding: 12px 12px;
-      border-radius: 18px;
-      border:1px solid rgba(255,255,255,.16);
-      background: rgba(255,255,255,.06);
-      backdrop-filter: blur(10px);
-      box-shadow: var(--shadow);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 12px;
-      color: rgba(241,241,243,.86);
-    }
-    .hudBox strong{color:rgba(241,241,243,.95)}
-    .hudMini{color:var(--muted2); margin-top:4px}
-
-    /* Mobile joystick */
-    #stick{
-      position:fixed;
-      bottom:16px;
-      right:16px;
-      width:120px; height:120px;
-      z-index:12;
-      pointer-events:auto;
-      display:none;
-      touch-action:none;
-    }
-    .ring{
-      width:100%; height:100%;
-      border-radius: 999px;
-      border:1px solid rgba(255,255,255,.18);
-      background: rgba(255,255,255,.04);
-      backdrop-filter: blur(10px);
-      box-shadow: var(--shadow);
-      position:relative;
-    }
-    .knob{
-      width:46px; height:46px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.14);
-      border:1px solid rgba(255,255,255,.20);
-      position:absolute;
-      left:50%; top:50%;
-      transform: translate(-50%,-50%);
-    }
-
-    /* Responsive */
-    @media (max-width: 860px){
-      .hero{grid-template-columns: 1fr; padding-top: 120px}
-      section{grid-template-columns: 1fr}
-      .nav, .brandMini{width:min(320px, 48vw)}
-    }
     @media (max-width: 520px){
-      .topbar{padding: 12px 12px}
-      .nav, .brandMini{width:auto}
-      .nav a{padding: 10px 10px}
-      .hero{padding-top: 118px}
-    }
-
-    /* Reduced motion */
-    @media (prefers-reduced-motion: reduce){
-      *{scroll-behavior:auto !important}
+      .title h1{font-size:13px}
+      .btn{padding: 9px 11px}
     }
   </style>
 </head>
 <body>
-  <canvas id="three" aria-hidden="true"></canvas>
+  <canvas id="c" aria-hidden="true"></canvas>
 
   <div id="ui">
-    <div class="topbar">
-      <nav class="nav" aria-label="Main navigation">
-        <a href="#filmmaker" data-section="filmmaker">Filmmaker <small>directing</small> <span>↘</span></a>
-        <a href="#photographer" data-section="photographer">Photographer <small>analog</small> <span>↘</span></a>
-        <a href="#digital" data-section="digital">Digital artist <small>AI/VR</small> <span>↘</span></a>
-        <a href="#events" data-section="events">Events <small>screenings</small> <span>↘</span></a>
-      </nav>
-
-      <div class="brandMini" aria-label="Micro brand">
-        <div class="tag">Human Creator</div>
-        <div class="stack">
-          <div>Creations</div>
-          <div>Create</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="hero">
-      <div class="heroCard">
-        <h1 class="heroTitle"><span>Human</span><br/><span>Creator</span></h1>
-        <div class="subline">
-          A director + producer who also shoots analog, builds weird interactive prototypes, and refuses to keep things “normal”.
-        </div>
-        <div class="typedWrap"><span id="typed"></span></div>
-
-        <div class="ctaRow">
-          <button class="btn primary" id="enterBtn" type="button"><span class="dot"></span> Enter space</button>
-          <button class="btn" id="askBtn" type="button">Just ask a question</button>
-          <button class="btn" id="reduceBtn" type="button">Reduce motion</button>
-        </div>
-
-        <div class="chips" style="margin-top:14px">
-          <div class="chip" data-chip="tools">Tools I use</div>
-          <div class="chip" data-chip="philosophy">Philosophy</div>
-          <div class="chip" data-chip="bio">Bio</div>
-          <div class="chip" data-chip="social">Social</div>
-        </div>
-      </div>
-
-      <div class="heroCard promptCard">
-        <h3>Welcome</h3>
-        <div class="pill" id="quickAsk">
+    <div class="top">
+      <div class="card">
+        <div class="title">
           <div>
-            <div style="font-weight:800; letter-spacing:.08em; text-transform:uppercase; font-size:12px;">Just ask question</div>
-            <small>collab, screenings, distribution, weird prototypes</small>
+            <h1>Reinis Kalnaellis · Digital Artist Gallery</h1>
+            <div class="sub">
+              A 10×10m room with augmented posters (films, photos, music, YouTube).
+              Walk around. Tap posters. Hear spatial sound.
+            </div>
           </div>
-          <div class="icons">
-            <div class="icon">✓</div>
-            <div class="icon">↗</div>
-          </div>
-        </div>
-        <div style="color:var(--muted); font-size:14px; line-height:1.5">
-          Scroll to explore. Or press <b>Enter space</b> to walk inside a typography field where words behave like traffic signs.
+          <button class="btn tiny" id="helpBtn" type="button">Help</button>
         </div>
 
-        <div class="hudBox" style="pointer-events:auto">
-          <strong>Controls</strong>
-          <div class="hudMini">
-            Desktop: click canvas → mouse look, WASD move, SPACE jump-ish, SHIFT sprint-ish.<br/>
-            Mobile: drag to look, joystick appears to move.
-          </div>
+        <div class="btnRow">
+          <button class="btn primary" id="enterBtn" type="button">Enter room</button>
+          <button class="btn" id="audioBtn" type="button">Start audio</button>
+          <button class="btn" id="fsBtn" type="button">Fullscreen</button>
+        </div>
+
+        <div class="chipRow" id="filters"></div>
+
+        <div class="k mono">
+          <div>Selected: <span id="sel">none</span></div>
+          <div>Distance: <span id="dist">–</span></div>
         </div>
       </div>
     </div>
 
-    <main>
-      <section id="filmmaker">
-        <div class="card">
-          <div class="cardHeader">
-            <div>
-              <h2 class="cardTitle">Filmmaker</h2>
-              <div class="cardMeta">Completed / line-up</div>
-            </div>
-            <button class="btn" type="button" data-open="film">Open</button>
-          </div>
-          <div class="cardBody">
-            Feature animation, shorts, festival life, and the non-stop “let’s make it emotionally clear” grind.
-            <div class="cardGrid" id="filmList"></div>
-          </div>
+    <div class="hud">
+      <div class="card">
+        <div class="line mono" id="controlsLine">
+          Desktop: click canvas → mouse look · WASD move · Shift sprint · E interact<br/>
+          Mobile: drag to look · joystick to move · tap poster to open
         </div>
-
-        <div class="card">
-          <div class="cardHeader">
-            <div>
-              <h2 class="cardTitle">Director / lineup</h2>
-              <div class="cardMeta">Director · Producer · Screenwriter</div>
-            </div>
-            <button class="btn" type="button" data-open="lineup">Open</button>
-          </div>
-          <div class="cardBody">
-            Three-slot “line-up” like your sketch: the past, the now, the next.
-            <div class="cardGrid" id="lineupList"></div>
-          </div>
+        <div class="k mono">
+          <div>Room: <span id="room">10×10m</span></div>
+          <div>FPS: <span id="fps">–</span></div>
         </div>
-      </section>
-
-      <section id="photographer">
-        <div class="card">
-          <div class="cardHeader">
-            <div>
-              <h2 class="cardTitle">Photographer</h2>
-              <div class="cardMeta">Analog / prints</div>
-            </div>
-            <button class="btn" type="button" data-open="photo">Open</button>
-          </div>
-          <div class="cardBody">
-            I like to play with cameras. Lately, I’ve been chasing that Rolleiflex lens magic.
-            <div class="cardGrid" id="photoList"></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="cardHeader">
-            <div>
-              <h2 class="cardTitle">Prints / Editions</h2>
-              <div class="cardMeta">Coming in neat little batches</div>
-            </div>
-            <button class="btn" type="button" data-open="prints">Open</button>
-          </div>
-          <div class="cardBody">
-            A minimal shop placeholder that doesn’t pretend to be an e-commerce empire.
-            <div class="cardGrid" id="printsList"></div>
-          </div>
-        </div>
-      </section>
-
-      <section id="digital">
-        <div class="card">
-          <div class="cardHeader">
-            <div>
-              <h2 class="cardTitle">Digital artist</h2>
-              <div class="cardMeta">AI / music experiments · VR/AR publisher</div>
-            </div>
-            <button class="btn" type="button" data-open="digital">Open</button>
-          </div>
-          <div class="cardBody">
-            Prototype culture: interactive typography, generative visuals, sound-reactive spaces, small games with big vibes.
-            <div class="cardGrid" id="digitalList"></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="cardHeader">
-            <div>
-              <h2 class="cardTitle">Create</h2>
-              <div class="cardMeta">A tiny playground</div>
-            </div>
-            <button class="btn" type="button" data-open="play">Open</button>
-          </div>
-          <div class="cardBody">
-            Collect floating words to unlock section highlights. It’s not a “metaverse”. Relax.
-            <div class="cardGrid" id="playList"></div>
-          </div>
-        </div>
-      </section>
-
-      <section id="events">
-        <div class="card">
-          <div class="cardHeader">
-            <div>
-              <h2 class="cardTitle">Events</h2>
-              <div class="cardMeta">Screenings · talks · workshops</div>
-            </div>
-            <button class="btn" type="button" data-open="events">Open</button>
-          </div>
-          <div class="cardBody">
-            Book a screening, a Q&amp;A, a studio tour, or a workshop on animation + storytelling + tools.
-            <div class="cardGrid" id="eventsList"></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="cardHeader">
-            <div>
-              <h2 class="cardTitle">Contacts</h2>
-              <div class="cardMeta">Bio · social · ask</div>
-            </div>
-            <button class="btn" type="button" data-open="contact">Open</button>
-          </div>
-          <div class="cardBody">
-            One button. One email draft. No fuss.
-            <div class="ctaRow" style="margin-top:12px">
-              <button class="btn primary" id="mailBtn" type="button"><span class="dot"></span> Email</button>
-              <button class="btn" id="copyBtn" type="button">Copy link</button>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer>
-      <div class="row">
-        <span>© <span id="year"></span> Reinis Kalnaellis</span>
-        <span>·</span>
-        <a href="#filmmaker">Back to top</a>
-        <span>·</span>
-        <span style="opacity:.8">Built as a single-file GitHub Pages page (replace content as you like).</span>
-      </div>
-    </footer>
-
-    <div id="hud">
-      <div class="hudBox">
-        <strong>Words collected:</strong> <span id="collected">0</span>
-        <div class="hudMini" id="hudTip">Collect 4 category words to trigger highlights.</div>
       </div>
     </div>
 
@@ -708,427 +237,313 @@
       <div class="ring"><div class="knob" id="knob"></div></div>
     </div>
 
-    <div id="modalBackdrop" role="dialog" aria-modal="true" aria-label="Details">
+    <div id="backdrop" role="dialog" aria-modal="true" aria-label="Media viewer">
       <div id="modal">
-        <div class="modalTop">
+        <div class="mTop">
           <div>
-            <h2 id="modalTitle">Details</h2>
-            <div id="modalSub" style="color:var(--muted2); font-size:12px; margin-top:4px; letter-spacing:.08em; text-transform:uppercase;"></div>
+            <h2 id="mTitle">Title</h2>
+            <div class="mSub" id="mSub">Category</div>
           </div>
-          <button class="xBtn" id="closeModal" type="button" aria-label="Close">✕</button>
+          <button class="x" id="closeBtn" type="button" aria-label="Close">✕</button>
         </div>
-        <div class="modalBody" id="modalBody"></div>
+        <div class="mBody" id="mBody"></div>
       </div>
     </div>
   </div>
 
-  <!-- Libraries (CDN, GitHub Pages-friendly) -->
+  <!-- GSAP for subtle poster breathing (optional, but nice) -->
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12/lib/typed.min.js"></script>
 
   <script type="module">
     import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
     import { PointerLockControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/PointerLockControls.js";
 
-    // ---------- Content (edit freely) ----------
-    const DATA = {
-      bio: {
-        title: "Bio (public, short)",
-        sub: "Director · Producer · VR/AR tinkerer",
-        html: `
-          <p>
-            I’m a Latvian director and producer focused on animation and emotional storytelling.
-            I like visuals that feel like warm childhood memory and interfaces that feel like play.
-          </p>
-          <div class="kv">
-            <b>Focus</b><div>Animated film, story craft, studio workflows, interactive prototypes</div>
-            <b>Base</b><div>Riga / Latvia (often elsewhere, chasing festivals)</div>
-            <b>Collab</b><div>Co-production, distribution, talks, workshops, commissioned content</div>
-          </div>
-        `
+    /*
+      ==========================
+      HOW TO USE THIS PAGE
+      ==========================
+      1) Host this as index.html on GitHub Pages.
+      2) Create folders (optional but recommended):
+         /assets/posters/
+         /assets/photos/
+         /assets/audio/
+      3) Replace the placeholder paths in GALLERY with your real media.
+
+      Notes:
+      - YouTube posters open an embedded player modal on click/tap.
+      - Audio posters can be spatialized: each poster is a sound source in 3D.
+      - Browsers require a user gesture to start audio, hence "Start audio".
+    */
+
+    // ---------- Gallery data (EDIT THIS) ----------
+    const GALLERY = [
+      {
+        id: "thelma",
+        category: "Film",
+        title: "Thelma’s Perfect Birthday",
+        subtitle: "Feature animation · poster placeholder",
+        kind: "image",
+        image: "assets/posters/thelma.jpg",
+        note: "Replace this with your official poster image. Clicking opens a larger view."
       },
-      tools: {
-        title: "Tools I use",
-        sub: "A mix of film craft + real-time weirdness",
-        html: `
-          <p>This page is built with: <b>three.js</b> (3D), <b>GSAP</b> (motion), <b>Tone.js</b> (sound), <b>Typed.js</b> (type animation).</p>
-          <p>In real work, the toolset changes constantly, but usually includes:</p>
-          <ul>
-            <li>Animation + film production pipelines</li>
-            <li>Real-time 3D workflows (including node-based experiments like Polygonjs)</li>
-            <li>AI-assisted story + visuals (carefully, like a responsible adult)</li>
-            <li>VR/AR prototyping</li>
-          </ul>
-        `
+      {
+        id: "hugo",
+        category: "Film",
+        title: "Singing Hugo",
+        subtitle: "Animated short · poster placeholder",
+        kind: "youtube",
+        youtubeId: "PASTE_YOUTUBE_ID_HERE",
+        image: "", // leave empty to auto-use YouTube thumbnail
+        note: "Replace youtubeId. Poster uses YouTube thumbnail automatically."
       },
-      philosophy: {
-        title: "Philosophy",
-        sub: "Make it emotionally clear. Then make it beautiful.",
-        html: `
-          <p>
-            I don’t start with “international audience” in mind. I start with the core emotion.
-            If the feeling is honest enough, it travels.
-          </p>
-          <p>
-            I also like the tension between <b>handmade warmth</b> and <b>technical clarity</b>.
-            That’s why you’re staring at animated typography floating in a 3D field.
-          </p>
-        `
+      {
+        id: "rolleiflex",
+        category: "Photography",
+        title: "Rolleiflex Lens Chase",
+        subtitle: "Analog photograph · placeholder",
+        kind: "image",
+        image: "assets/photos/rolleiflex_01.jpg",
+        note: "Put your print/edition info here."
       },
-      social: {
-        title: "Social",
-        sub: "Links are placeholders",
-        html: `
-          <ul>
-            <li><b>IMDb</b>: add your link</li>
-            <li><b>Vimeo</b>: add your link</li>
-            <li><b>Instagram</b>: add your link</li>
-            <li><b>Studio</b>: add your link</li>
-          </ul>
-          <p style="color:rgba(241,241,243,.72)">Tip: keep links short and consistent. Humans click more when it looks effortless.</p>
-        `
+      {
+        id: "doubleexp",
+        category: "Photography",
+        title: "Double Exposure Study",
+        subtitle: "Analog chaos · placeholder",
+        kind: "image",
+        image: "assets/photos/double_exposure.jpg",
+        note: "Optional: list edition sizes, paper, pricing."
+      },
+      {
+        id: "soundspace",
+        category: "Music",
+        title: "Spatial Sketch",
+        subtitle: "Audio loop · placeholder",
+        kind: "audio",
+        image: "assets/posters/music_01.jpg",
+        audio: "assets/audio/track01.mp3",
+        note: "Put an mp3 here. Audio becomes louder as you approach."
+      },
+      {
+        id: "ai_gallery",
+        category: "Digital",
+        title: "AI / VR Experiments",
+        subtitle: "Interactive demo reel · placeholder",
+        kind: "youtube",
+        youtubeId: "PASTE_YOUTUBE_ID_HERE",
+        image: "",
+        note: "Use this for your YouTube playlists or demo videos."
       }
-    };
+    ];
 
-    const WORKS = {
-      films: [
-        {
-          title: "Thelma’s Perfect Birthday",
-          meta: "Feature animation · 2024 · Latvia / Luxembourg",
-          bullets: [
-            "First feature-length animation as director.",
-            "A young penguin’s birthday adventure that gently dismantles perfection pressure.",
-            "Festival journey includes Schlingel (international premiere) and Annecy Presents."
-          ]
-        },
-        {
-          title: "Singing Hugo and His Incredible Adventures",
-          meta: "Animated short · 2017 · Berlinale Generation Kplus",
-          bullets: [
-            "Short animation about a sleepless chicken chasing a singing career.",
-            "Directed and edited by Reinis Kalnaellis."
-          ]
-        },
-        {
-          title: "When Apples Roll (Kad āboli ripo)",
-          meta: "Animated short · 2009",
-          bullets: [
-            "Early short work that seeded the long-term craft obsession.",
-            "A reminder: careers are built from many small films, not one “perfect” launch."
-          ]
-        },
-        {
-          title: "The Golden Horse (Zelta zirgs)",
-          meta: "Feature animation project · in development / work-in-progress",
-          bullets: [
-            "A long-running feature project referenced in early interviews and studio pages.",
-            "Put here as ‘line-up’ (you’ll refine the status)."
-          ]
-        }
-      ],
-      lineup: [
-        { title: "Past", meta: "Shorts & craft years", bullets: ["2009–2017: shorts, editing, building a voice."] },
-        { title: "Now", meta: "Feature film life", bullets: ["Thelma’s Perfect Birthday and festival / release cycle."] },
-        { title: "Next", meta: "New feature + interactive", bullets: ["Beverina / new IPs / interactive storytelling experiments."] },
-      ],
-      photo: [
-        { title: "Analog portraits", meta: "Rolleiflex / medium format", bullets: ["Soft, honest light.", "Limited editions."] },
-        { title: "Double exposures", meta: "Accidents that behave", bullets: ["Controlled chaos.", "Perfect for album covers."] }
-      ],
-      prints: [
-        { title: "Edition 01", meta: "8×10 / 12×12 / 16×20", bullets: ["Signed, numbered.", "Simple shipping, no drama."] },
-        { title: "Custom commissions", meta: "For campaigns & covers", bullets: ["Concept + shoot + post.", "Deadline-friendly."] }
-      ],
-      digital: [
-        { title: "Sound-reactive spaces", meta: "Tone.js + three.js", bullets: ["Audio drives geometry.", "Interactive typography in depth."] },
-        { title: "Micro-games", meta: "Playable pages", bullets: ["A tiny mechanic beats a boring scroll.", "Collect words. Unlock context."] },
-        { title: "VR/AR prototypes", meta: "Experiments → demos", bullets: ["Fast iterations.", "Show, don’t tell."] }
-      ],
-      play: [
-        { title: "Traffic-sign typography", meta: "Changing text in 3D", bullets: ["Words drift in like signage.", "They update as you scroll."] }
-      ],
-      events: [
-        { title: "Screening + Q&A", meta: "Cinema / festival / school", bullets: ["Film + talk + craft breakdown.", "Kids & adults both welcome."] },
-        { title: "Workshop", meta: "Animation & tools", bullets: ["Storyboarding, pacing, tone.", "Practical pipeline tips."] }
-      ]
-    };
+    const CATEGORIES = ["All", ...Array.from(new Set(GALLERY.map(g => g.category)))];
 
-    // ---------- UI wiring ----------
-    const $ = (s) => document.querySelector(s);
-    const yearEl = $("#year");
-    yearEl.textContent = new Date().getFullYear();
+    // ---------- DOM ----------
+    const canvas = document.getElementById("c");
+    const filtersEl = document.getElementById("filters");
+    const selEl = document.getElementById("sel");
+    const distEl = document.getElementById("dist");
+    const fpsEl = document.getElementById("fps");
+    const enterBtn = document.getElementById("enterBtn");
+    const audioBtn = document.getElementById("audioBtn");
+    const fsBtn = document.getElementById("fsBtn");
+    const helpBtn = document.getElementById("helpBtn");
 
-    const modalBackdrop = $("#modalBackdrop");
-    const modalTitle = $("#modalTitle");
-    const modalSub = $("#modalSub");
-    const modalBody = $("#modalBody");
-    const closeModalBtn = $("#closeModal");
+    const backdrop = document.getElementById("backdrop");
+    const closeBtn = document.getElementById("closeBtn");
+    const mTitle = document.getElementById("mTitle");
+    const mSub = document.getElementById("mSub");
+    const mBody = document.getElementById("mBody");
 
-    function openModal(title, sub, html){
-      modalTitle.textContent = title || "Details";
-      modalSub.textContent = sub || "";
-      modalBody.innerHTML = html || "";
-      modalBackdrop.style.display = "flex";
-      playClick();
+    // ---------- Helpers ----------
+    const isMobile = () => matchMedia("(pointer: coarse)").matches;
+
+    function openModal(item){
+      mTitle.textContent = item.title || "Untitled";
+      mSub.textContent = `${item.category || "Category"} · ${item.kind || "media"}`;
+      mBody.innerHTML = renderModalBody(item);
+      backdrop.style.display = "flex";
     }
     function closeModal(){
-      modalBackdrop.style.display = "none";
-      playClick();
+      backdrop.style.display = "none";
+      // stop iframe playback by clearing it (cheap but effective)
+      const iframe = mBody.querySelector("iframe");
+      if(iframe) iframe.src = iframe.src;
     }
-    closeModalBtn.addEventListener("click", closeModal);
-    modalBackdrop.addEventListener("click", (e)=>{ if(e.target === modalBackdrop) closeModal(); });
+    closeBtn.addEventListener("click", closeModal);
+    backdrop.addEventListener("click", (e)=>{ if(e.target === backdrop) closeModal(); });
     window.addEventListener("keydown", (e)=>{ if(e.key === "Escape") closeModal(); });
 
-    document.querySelectorAll("[data-chip]").forEach(ch=>{
-      ch.addEventListener("click", ()=>{
-        const key = ch.dataset.chip;
-        const item = DATA[key];
-        if(item) openModal(item.title, item.sub, item.html);
-      });
-    });
-
-    function buildList(targetId, items, modalKey){
-      const wrap = document.getElementById(targetId);
-      wrap.innerHTML = "";
-      items.forEach((it, idx)=>{
-        const row = document.createElement("div");
-        row.className = "work";
-        row.innerHTML = `
-          <div class="thumb" aria-hidden="true"></div>
-          <div class="workText">
-            <b>${it.title}</b>
-            <span>${it.meta || ""}</span>
-          </div>
+    function renderModalBody(item){
+      const safeNote = item.note ? `<div class="hr"></div><div style="color:rgba(244,244,246,.7)">${escapeHtml(item.note)}</div>` : "";
+      if(item.kind === "youtube"){
+        const id = item.youtubeId && item.youtubeId !== "PASTE_YOUTUBE_ID_HERE" ? item.youtubeId : "";
+        const warn = !id ? `<div class="mediaBox"><b>Missing YouTube ID.</b><div style="color:rgba(244,244,246,.72)">Edit <code>youtubeId</code> in the <code>GALLERY</code> array.</div></div>` : "";
+        const player = id ? `<div class="mediaBox"><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen src="https://www.youtube-nocookie.com/embed/${id}?rel=0"></iframe></div>` : "";
+        return `
+          <div><b>${escapeHtml(item.subtitle || "")}</b></div>
+          ${warn}
+          ${player}
+          ${safeNote}
         `;
-        row.addEventListener("click", ()=>{
-          openModal(it.title, it.meta || "", `
-            <p>${(it.lead || "").trim()}</p>
-            <ul>${(it.bullets||[]).map(b=>`<li>${b}</li>`).join("")}</ul>
-            <div class="hr"></div>
-            <p style="color:rgba(241,241,243,.72); margin:0">Tip: replace these bullets with your final copy, stills, trailers, and press quotes.</p>
-          `);
-          setTheme(modalKey || "neutral");
-          pulseSection(it.title);
-        });
-      wrap.appendChild(row);
-      });
-    }
-
-    buildList("filmList", WORKS.films, "film");
-    buildList("lineupList", WORKS.lineup, "lineup");
-    buildList("photoList", WORKS.photo, "photo");
-    buildList("printsList", WORKS.prints, "prints");
-    buildList("digitalList", WORKS.digital, "digital");
-    buildList("playList", WORKS.play, "play");
-    buildList("eventsList", WORKS.events, "events");
-
-    document.querySelectorAll("[data-open]").forEach(btn=>{
-      btn.addEventListener("click", ()=>{
-        const key = btn.dataset.open;
-        if(key === "contact"){
-          openModal("Contact", "One email draft. No fuss.", contactHtml());
-          return;
-        }
-        const map = {
-          film: ["Filmmaker", "Selected work", WORKS.films],
-          lineup: ["Director / lineup", "Past · Now · Next", WORKS.lineup],
-          photo: ["Photographer", "Analog / prints", WORKS.photo],
-          prints: ["Prints / Editions", "Small, clean releases", WORKS.prints],
-          digital: ["Digital artist", "AI/VR/music experiments", WORKS.digital],
-          play: ["Create", "Tiny playground", WORKS.play],
-          events: ["Events", "Screenings · talks · workshops", WORKS.events],
-        };
-        const [t, s, items] = map[key] || ["Details","",[]];
-        openModal(t, s, `<ul>${(items||[]).map(it=>`<li><b>${it.title}</b> <span style="color:rgba(241,241,243,.6)">· ${it.meta||""}</span></li>`).join("")}</ul>`);
-        setTheme(key);
-      });
-    });
-
-    function contactHtml(){
+      }
+      if(item.kind === "audio"){
+        const src = item.audio || "";
+        const warn = !src ? `<div class="mediaBox"><b>Missing audio file.</b><div style="color:rgba(244,244,246,.72)">Set <code>audio</code> to something like <code>assets/audio/track01.mp3</code>.</div></div>` : "";
+        const player = src ? `<div class="mediaBox"><audio controls preload="none" src="${src}"></audio></div>` : "";
+        return `
+          <div><b>${escapeHtml(item.subtitle || "")}</b></div>
+          <div style="color:rgba(244,244,246,.72)">Spatial audio is handled in 3D (if you hit “Start audio”). The player below is just a fallback.</div>
+          ${warn}
+          ${player}
+          ${safeNote}
+        `;
+      }
+      // image/default
+      const src = item.image || "";
+      const img = src ? `<div class="mediaBox"><img alt="${escapeHtml(item.title||"Artwork")}" src="${src}"></div>` :
+                        `<div class="mediaBox"><b>No image path set.</b><div style="color:rgba(244,244,246,.72)">Set <code>image</code> to a file in <code>assets/</code>.</div></div>`;
       return `
-        <p>Send a message with your intent and timeline. That’s it.</p>
-        <div class="kv">
-          <b>Email</b><div><code id="emailCode">hello@reinis.kalnaellis.com</code> <span style="color:rgba(241,241,243,.55)">(replace with your real email)</span></div>
-          <b>Subject</b><div><code>Collab / Screening / Commission</code></div>
-          <b>Include</b><div>what you need, dates, location, budget range, and any links</div>
-        </div>
-        <div class="hr"></div>
-        <button class="btn primary" id="modalMailBtn" type="button"><span class="dot"></span> Open email draft</button>
+        <div><b>${escapeHtml(item.subtitle || "")}</b></div>
+        ${img}
+        ${safeNote}
       `;
     }
 
-    function openMailDraft(){
-      // Replace this with your real email.
-      const email = "hello@reinis.kalnaellis.com";
-      const subject = encodeURIComponent("Collab / Screening / Commission");
-      const body = encodeURIComponent(
-`Hi Reinis,
-
-I’m reaching out about:
-- Project / event:
-- Dates:
-- Location:
-- Budget range:
-- Links:
-
-Best,
-(Your name)`);
-      window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+    function escapeHtml(str){
+      return (str||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
     }
 
-    $("#askBtn").addEventListener("click", ()=> openModal("Just ask a question", "Open an email draft", contactHtml()));
-    $("#quickAsk").addEventListener("click", ()=> openModal("Just ask a question", "Open an email draft", contactHtml()));
-    $("#mailBtn").addEventListener("click", openMailDraft);
-    $("#copyBtn").addEventListener("click", async ()=>{
-      try{
-        await navigator.clipboard.writeText(window.location.href);
-        playClick();
-        $("#hudTip").textContent = "Link copied. Go spam your producer group chat.";
-        setTimeout(()=> $("#hudTip").textContent = "Collect 4 category words to trigger highlights.", 1800);
-      }catch{
-        $("#hudTip").textContent = "Couldn’t copy. Your browser is being dramatic.";
-        setTimeout(()=> $("#hudTip").textContent = "Collect 4 category words to trigger highlights.", 1800);
-      }
-    });
-
-    // Modal button inside content
-    modalBackdrop.addEventListener("click", (e)=>{
-      const id = e.target?.id;
-      if(id === "modalMailBtn") openMailDraft();
-    });
-
-    // Typed.js hero line
-    const typed = new window.Typed("#typed", {
-      strings: [
-        "Director / Producer / Screenwriter",
-        "Feature animation · shorts · festivals",
-        "Analog photography · limited prints",
-        "Interactive typography · VR/AR prototypes",
-        "Let’s build something that feels alive"
-      ],
-      typeSpeed: 28,
-      backSpeed: 18,
-      backDelay: 1100,
-      loop: true,
-      smartBackspace: true,
-      showCursor: true,
-      cursorChar: "▌"
-    });
-
-    // ---------- Sound (Tone.js) ----------
-    let synth, clickSynth;
-    let audioReady = false;
-
-    async function ensureAudio(){
-      if(audioReady) return;
-      try{
-        await Tone.start();
-        synth = new Tone.PolySynth(Tone.Synth, {
-          oscillator: { type: "triangle" },
-          envelope: { attack: 0.005, decay: 0.12, sustain: 0.0, release: 0.25 }
-        }).toDestination();
-        clickSynth = new Tone.MembraneSynth({
-          pitchDecay: 0.01,
-          octaves: 4,
-          envelope: { attack: 0.001, decay: 0.12, sustain: 0.0, release: 0.01 }
-        }).toDestination();
-        audioReady = true;
-      }catch{
-        // Silent fail, because browsers love being “helpful”.
-        audioReady = false;
-      }
-    }
-    function playNote(){
-      if(!audioReady || !synth) return;
-      const notes = ["C4","E4","G4","B3","D4"];
-      synth.triggerAttackRelease(notes[(Math.random()*notes.length)|0], "16n", Tone.now(), 0.45);
-    }
-    function playClick(){
-      if(!audioReady || !clickSynth) return;
-      clickSynth.triggerAttackRelease("C2", "32n", Tone.now(), 0.4);
-    }
-
-    // ---------- Motion (GSAP) ----------
-    gsap.registerPlugin(ScrollTrigger);
-
-    // Animate cards in
-    document.querySelectorAll(".card").forEach((card)=>{
-      gsap.fromTo(card, { y: 26, opacity: 0 }, {
-        y: 0, opacity: 1, duration: 0.8, ease: "power2.out",
-        scrollTrigger: { trigger: card, start: "top 90%" }
+    // ---------- Filter UI ----------
+    let activeCategory = "All";
+    function rebuildFilters(){
+      filtersEl.innerHTML = "";
+      CATEGORIES.forEach(cat=>{
+        const b = document.createElement("div");
+        b.className = "chip" + (cat === activeCategory ? " active" : "");
+        b.textContent = cat;
+        b.addEventListener("click", ()=>{
+          activeCategory = cat;
+          rebuildFilters();
+          rebuildPostersSafe();
+        });
+        filtersEl.appendChild(b);
       });
-    });
+    }
+    rebuildFilters();
 
-    // ---------- 3D Scene ----------
-    const canvas = document.getElementById("three");
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true, powerPreference:"high-performance" });
+    // ---------- Three.js setup ----------
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:false, powerPreference:"high-performance" });
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x07070a, 0.055);
+    scene.background = new THREE.Color(0x050508);
 
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 180);
-    camera.position.set(0, 1.2, 8);
+    const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 80);
+    camera.position.set(0, 1.6, 3.4);
 
-    const light = new THREE.DirectionalLight(0xffffff, 0.85);
-    light.position.set(3, 6, 5);
-    scene.add(light);
-    scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+    // Lighting: gallery-ish
+    scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+    const dir = new THREE.DirectionalLight(0xffffff, 0.75);
+    dir.position.set(4, 6, 3);
+    scene.add(dir);
 
-    // Stars (points)
-    const starGeo = new THREE.BufferGeometry();
-    const starCount = 900;
-    const positions = new Float32Array(starCount * 3);
-    for(let i=0;i<starCount;i++){
-      positions[i*3+0] = (Math.random()-0.5)*80;
-      positions[i*3+1] = (Math.random()-0.1)*40;
-      positions[i*3+2] = (Math.random()-0.5)*80;
+    // Room 10x10m (x,z), height 3m
+    const ROOM = { w: 10, h: 3, d: 10 };
+    const roomGeo = new THREE.BoxGeometry(ROOM.w, ROOM.h, ROOM.d);
+    const roomMat = new THREE.MeshStandardMaterial({
+      color: 0x0b0b12,
+      roughness: 0.95,
+      metalness: 0.0,
+      side: THREE.BackSide
+    });
+    const roomMesh = new THREE.Mesh(roomGeo, roomMat);
+    roomMesh.position.y = ROOM.h/2;
+    scene.add(roomMesh);
+
+    // Floor grid (subtle)
+    const grid = new THREE.GridHelper(ROOM.w, 20, 0x666666, 0x333333);
+    grid.position.y = 0.01;
+    grid.material.opacity = 0.16;
+    grid.material.transparent = true;
+    scene.add(grid);
+
+    // Ceiling glow strips (fake)
+    const stripGeo = new THREE.PlaneGeometry(ROOM.w*0.9, 0.35);
+    const stripMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent:true, opacity: 0.04 });
+    for(let i=0;i<3;i++){
+      const s = new THREE.Mesh(stripGeo, stripMat);
+      s.rotation.x = Math.PI/2;
+      s.position.set(0, ROOM.h-0.02, -2 + i*2);
+      scene.add(s);
     }
-    starGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-    const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.05, transparent:true, opacity: 0.55 });
-    const stars = new THREE.Points(starGeo, starMat);
-    scene.add(stars);
 
-    // Ground haze plane
-    const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(200,200),
-      new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:0.08 })
-    );
-    ground.rotation.x = -Math.PI/2;
-    ground.position.y = -1.4;
-    scene.add(ground);
-
-    // Controls: PointerLock desktop; touch-look mobile
+    // Controls: pointer lock desktop + touch-look mobile
     const plc = new PointerLockControls(camera, renderer.domElement);
     let walking = false;
 
-    // Movement state
-    const keys = { w:false, a:false, s:false, d:false, shift:false, space:false };
-    const vel = new THREE.Vector3();
-    const dir = new THREE.Vector3();
-    let moveStick = { x:0, y:0 };
+    enterBtn.addEventListener("click", ()=>{
+      if(!isMobile()){
+        plc.lock();
+      }
+      walking = true;
+    });
+    plc.addEventListener("lock", ()=> walking = true);
+    plc.addEventListener("unlock", ()=> walking = false);
 
-    function isMobile(){
-      return matchMedia("(pointer: coarse)").matches;
-    }
+    // Touch look (mobile)
+    let look = { active:false, x:0, y:0, yaw:0, pitch:0 };
+    renderer.domElement.addEventListener("pointerdown", (e)=>{
+      if(!isMobile()) return;
+      look.active = true;
+      look.x = e.clientX; look.y = e.clientY;
+    });
+    renderer.domElement.addEventListener("pointermove", (e)=>{
+      if(!isMobile() || !look.active) return;
+      const dx = e.clientX - look.x;
+      const dy = e.clientY - look.y;
+      look.x = e.clientX; look.y = e.clientY;
+      const s = 0.0024;
+      look.yaw -= dx*s;
+      look.pitch -= dy*s;
+      look.pitch = Math.max(-1.1, Math.min(1.1, look.pitch));
+      camera.rotation.set(look.pitch, look.yaw, 0);
+    });
+    window.addEventListener("pointerup", ()=> look.active = false);
 
-    // Joystick
+    // Keyboard movement
+    const keys = { w:false,a:false,s:false,d:false,shift:false };
+    window.addEventListener("keydown", (e)=>{
+      const k = e.key.toLowerCase();
+      if(k==="w") keys.w = true;
+      if(k==="a") keys.a = true;
+      if(k==="s") keys.s = true;
+      if(k==="d") keys.d = true;
+      if(k==="shift") keys.shift = true;
+      if(k==="e") tryInteract();
+    });
+    window.addEventListener("keyup", (e)=>{
+      const k = e.key.toLowerCase();
+      if(k==="w") keys.w = false;
+      if(k==="a") keys.a = false;
+      if(k==="s") keys.s = false;
+      if(k==="d") keys.d = false;
+      if(k==="shift") keys.shift = false;
+    });
+
+    // Mobile joystick movement
     const stick = document.getElementById("stick");
     const knob = document.getElementById("knob");
     let stickActive = false;
     let stickCenter = { x:0, y:0 };
+    let moveStick = { x:0, y:0 };
 
-    function showJoystickIfNeeded(){
-      if(isMobile()){
-        stick.style.display = "block";
-      }else{
-        stick.style.display = "none";
-      }
+    function updateJoystickVisibility(){
+      stick.style.display = isMobile() ? "block" : "none";
     }
-    showJoystickIfNeeded();
+    updateJoystickVisibility();
 
     stick.addEventListener("pointerdown", (e)=>{
       stickActive = true;
@@ -1137,10 +552,10 @@ Best,
       stickCenter.x = r.left + r.width/2;
       stickCenter.y = r.top + r.height/2;
       updateStick(e.clientX, e.clientY);
-      playClick();
+      walking = true;
     });
     stick.addEventListener("pointermove", (e)=>{ if(stickActive) updateStick(e.clientX, e.clientY); });
-    stick.addEventListener("pointerup", (e)=>{
+    stick.addEventListener("pointerup", ()=>{
       stickActive = false;
       moveStick.x = 0; moveStick.y = 0;
       knob.style.transform = "translate(-50%,-50%)";
@@ -1157,396 +572,620 @@ Best,
       moveStick.y = ny / max;
     }
 
-    // Touch look
-    let touchLook = { active:false, x:0, y:0, yaw:0, pitch:0 };
-    renderer.domElement.addEventListener("pointerdown", (e)=>{
-      if(!isMobile()) return;
-      touchLook.active = true;
-      touchLook.x = e.clientX;
-      touchLook.y = e.clientY;
-      playClick();
-    });
-    renderer.domElement.addEventListener("pointermove", (e)=>{
-      if(!isMobile() || !touchLook.active) return;
-      const dx = e.clientX - touchLook.x;
-      const dy = e.clientY - touchLook.y;
-      touchLook.x = e.clientX;
-      touchLook.y = e.clientY;
-      // Apply yaw/pitch
-      const rotSpeed = 0.0022;
-      touchLook.yaw -= dx * rotSpeed;
-      touchLook.pitch -= dy * rotSpeed;
-      touchLook.pitch = Math.max(-1.2, Math.min(1.2, touchLook.pitch));
-      camera.rotation.set(touchLook.pitch, touchLook.yaw, 0);
-    });
-    window.addEventListener("pointerup", ()=>{ touchLook.active = false; });
+    // Keep camera inside room
+    function clampToRoom(){
+      const margin = 0.55;
+      camera.position.x = Math.max(-ROOM.w/2 + margin, Math.min(ROOM.w/2 - margin, camera.position.x));
+      camera.position.z = Math.max(-ROOM.d/2 + margin, Math.min(ROOM.d/2 - margin, camera.position.z));
+      camera.position.y = Math.max(0.4, Math.min(2.2, camera.position.y));
+    }
 
-    // Keyboard
-    window.addEventListener("keydown", (e)=>{
-      const k = e.key.toLowerCase();
-      if(k==="w") keys.w = true;
-      if(k==="a") keys.a = true;
-      if(k==="s") keys.s = true;
-      if(k==="d") keys.d = true;
-      if(k==="shift") keys.shift = true;
-      if(k===" ") keys.space = true;
-    });
-    window.addEventListener("keyup", (e)=>{
-      const k = e.key.toLowerCase();
-      if(k==="w") keys.w = false;
-      if(k==="a") keys.a = false;
-      if(k==="s") keys.s = false;
-      if(k==="d") keys.d = false;
-      if(k==="shift") keys.shift = false;
-      if(k===" ") keys.space = false;
-    });
+    // ---------- Posters ----------
+    const loader = new THREE.TextureLoader();
+    const posterGroup = new THREE.Group();
+    scene.add(posterGroup);
 
-    // Traffic sign textures (dynamic typography)
-    function makeSignTexture(text, flavor="green"){
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2(0,0);
+    let hovered = null; // { mesh, item }
+    let selectedItem = null;
+
+    function makePlaceholderTexture(label, sublabel, accent = "#ffffff"){
       const c = document.createElement("canvas");
-      c.width = 768; c.height = 256;
+      c.width = 1024; c.height = 1536; // poster-ish ratio
       const ctx = c.getContext("2d");
 
-      // Background
-      ctx.clearRect(0,0,c.width,c.height);
+      // Background gradient
+      const g = ctx.createLinearGradient(0,0,1024,1536);
+      g.addColorStop(0, "#0b0b12");
+      g.addColorStop(1, "#060608");
+      ctx.fillStyle = g;
+      ctx.fillRect(0,0,c.width,c.height);
 
-      // Border radius rectangle
-      const r = 38;
-      const x=36, y=32, w=c.width-72, h=c.height-64;
-
-      // Colors
-      const palette = {
-        green: { bg:"rgba(12, 78, 46, 0.92)", stroke:"rgba(255,255,255,0.85)", stripe:"rgba(255,255,255,0.14)" },
-        yellow:{ bg:"rgba(120, 86, 12, 0.92)", stroke:"rgba(255,255,255,0.85)", stripe:"rgba(255,255,255,0.12)" },
-        blue:  { bg:"rgba(22, 44, 100, 0.92)", stroke:"rgba(255,255,255,0.85)", stripe:"rgba(255,255,255,0.12)" },
-        black: { bg:"rgba(0, 0, 0, 0.55)", stroke:"rgba(255,255,255,0.65)", stripe:"rgba(255,255,255,0.10)" },
-      }[flavor] || { bg:"rgba(12, 78, 46, 0.92)", stroke:"rgba(255,255,255,0.85)", stripe:"rgba(255,255,255,0.14)" };
-
-      // Rounded rect helper
-      function roundRect(px,py,pw,ph,pr){
-        ctx.beginPath();
-        ctx.moveTo(px+pr, py);
-        ctx.arcTo(px+pw, py, px+pw, py+ph, pr);
-        ctx.arcTo(px+pw, py+ph, px, py+ph, pr);
-        ctx.arcTo(px, py+ph, px, py, pr);
-        ctx.arcTo(px, py, px+pw, py, pr);
-        ctx.closePath();
+      // Noise-ish pattern
+      ctx.globalAlpha = 0.18;
+      for(let i=0;i<2200;i++){
+        const x = Math.random()*c.width;
+        const y = Math.random()*c.height;
+        const s = Math.random()*2.2+0.2;
+        ctx.fillStyle = `rgba(255,255,255,${Math.random()*0.16})`;
+        ctx.fillRect(x,y,s,s);
       }
+      ctx.globalAlpha = 1;
 
-      // Fill
-      roundRect(x,y,w,h,r);
-      ctx.fillStyle = palette.bg;
-      ctx.fill();
-
-      // Subtle stripes
-      ctx.save();
-      ctx.globalAlpha = 0.65;
-      ctx.translate(c.width*0.2, -c.height*0.2);
-      ctx.rotate(Math.PI/10);
-      ctx.fillStyle = palette.stripe;
-      for(let i=-10;i<20;i++){
-        ctx.fillRect(i*70, 0, 22, c.height*2);
-      }
-      ctx.restore();
-
-      // Stroke
+      // Border
+      ctx.strokeStyle = "rgba(255,255,255,0.22)";
       ctx.lineWidth = 10;
-      ctx.strokeStyle = palette.stroke;
-      roundRect(x,y,w,h,r);
-      ctx.stroke();
+      ctx.strokeRect(30,30,c.width-60,c.height-60);
+
+      // Accent stripe
+      ctx.fillStyle = accent;
+      ctx.globalAlpha = 0.16;
+      ctx.fillRect(60, 120, c.width-120, 22);
+      ctx.globalAlpha = 1;
 
       // Text
-      ctx.fillStyle = "rgba(255,255,255,0.92)";
-      ctx.font = "900 68px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
-      ctx.textBaseline = "middle";
+      ctx.fillStyle = "rgba(244,244,246,0.92)";
+      ctx.font = "900 82px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
 
-      const label = (text || "").toUpperCase();
-      // Fit text roughly
-      let fontSize = 68;
-      while(fontSize > 34){
-        ctx.font = `900 ${fontSize}px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial`;
-        if(ctx.measureText(label).width < w - 90) break;
-        fontSize -= 2;
-      }
-      ctx.fillText(label, x + 34, y + h/2);
+      const t = (label || "PLACEHOLDER").toUpperCase();
+      wrapText(ctx, t, 60, 190, c.width-120, 90);
 
-      // Arrow
-      ctx.font = `900 62px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial`;
-      ctx.fillText("➜", x + w - 92, y + h/2);
+      ctx.fillStyle = "rgba(244,244,246,0.62)";
+      ctx.font = "700 40px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
+      ctx.fillText((sublabel||"").toUpperCase(), 60, 540);
+
+      ctx.fillStyle = "rgba(244,244,246,0.42)";
+      ctx.font = "700 28px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
+      ctx.fillText("reinis.kalnaellis.com", 60, c.height-90);
 
       const tex = new THREE.CanvasTexture(c);
-      tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      tex.colorSpace = THREE.SRGBColorSpace;
       tex.needsUpdate = true;
       return tex;
     }
 
-    // Spawn traffic signs
-    const signGroup = new THREE.Group();
-    scene.add(signGroup);
-
-    const signTexts = [
-      { t:"HUMAN CREATOR", f:"green" },
-      { t:"FILMMAKER", f:"blue" },
-      { t:"PHOTOGRAPHER", f:"yellow" },
-      { t:"DIGITAL ARTIST", f:"green" },
-      { t:"EVENTS", f:"blue" },
-      { t:"ASK A QUESTION", f:"black" },
-      { t:"CREATE", f:"green" },
-    ];
-
-    function addSign(text, flavor, pos){
-      const tex = makeSignTexture(text, flavor);
-      const mat = new THREE.MeshBasicMaterial({ map: tex, transparent:true, opacity: 0.98 });
-      const geo = new THREE.PlaneGeometry(3.2, 1.06);
-      const m = new THREE.Mesh(geo, mat);
-      m.position.copy(pos);
-      m.rotation.y = (Math.random()-0.5)*0.6;
-      m.userData = { text, flavor, speed: 0.7 + Math.random()*0.9, wobble: Math.random()*2.0 };
-      signGroup.add(m);
-      return m;
-    }
-
-    for(let i=0;i<11;i++){
-      const s = signTexts[i % signTexts.length];
-      addSign(s.t, s.f, new THREE.Vector3(
-        (Math.random()-0.5)*8,
-        (Math.random()-0.2)*4,
-        -i*7 - 10
-      ));
-    }
-
-    // Collectible word tokens (gameplay)
-    const tokenGroup = new THREE.Group();
-    scene.add(tokenGroup);
-    const tokenWords = ["FILM", "PHOTO", "DIGITAL", "EVENTS"];
-    let collected = 0;
-    const collectedEl = document.getElementById("collected");
-
-    function makeToken(word){
-      const tex = makeSignTexture(word, "black");
-      const mat = new THREE.MeshBasicMaterial({ map: tex, transparent:true, opacity: 0.92 });
-      const geo = new THREE.PlaneGeometry(1.8, 0.60);
-      const m = new THREE.Mesh(geo, mat);
-      m.userData = { word, r: 0.9 };
-      return m;
-    }
-    function spawnTokens(){
-      tokenGroup.clear();
-      for(let i=0;i<14;i++){
-        const w = tokenWords[i % tokenWords.length];
-        const t = makeToken(w);
-        t.position.set((Math.random()-0.5)*10, (Math.random())*2.2, -6 - Math.random()*60);
-        t.rotation.y = (Math.random()-0.5)*1.2;
-        tokenGroup.add(t);
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight){
+      const words = text.split(" ");
+      let line = "";
+      for(let n=0;n<words.length;n++){
+        const test = line + words[n] + " ";
+        const w = ctx.measureText(test).width;
+        if(w > maxWidth && n > 0){
+          ctx.fillText(line, x, y);
+          line = words[n] + " ";
+          y += lineHeight;
+        }else{
+          line = test;
+        }
       }
-    }
-    spawnTokens();
-
-    // Theme reactions
-    let theme = "neutral";
-    function setTheme(key){
-      theme = key || "neutral";
-      const map = {
-        film: ["FILMMAKER", "blue"],
-        lineup: ["LINE-UP", "green"],
-        photo: ["PHOTOGRAPHER", "yellow"],
-        prints: ["PRINTS", "yellow"],
-        digital: ["DIGITAL ARTIST", "green"],
-        play: ["CREATE", "green"],
-        events: ["EVENTS", "blue"],
-        contact: ["ASK A QUESTION", "black"],
-        neutral: ["HUMAN CREATOR", "green"],
-      };
-      const [text, flavor] = map[key] || map.neutral;
-      // Update first sign to announce theme
-      const first = signGroup.children[0];
-      if(first){
-        first.material.map = makeSignTexture(text, flavor);
-        first.material.needsUpdate = true;
-      }
-      playNote();
+      ctx.fillText(line, x, y);
     }
 
-    function pulseSection(label){
-      // Small visual feedback: flash HUD tip
-      const tip = $("#hudTip");
-      tip.textContent = `Selected: ${label}`;
-      setTimeout(()=> tip.textContent = "Collect 4 category words to trigger highlights.", 1600);
+    function accentForCategory(cat){
+      return {
+        "Film":"#7dd3fc",
+        "Photography":"#facc15",
+        "Music":"#a7f3d0",
+        "Digital":"#c4b5fd",
+        "Events":"#fda4af"
+      }[cat] || "#ffffff";
     }
 
-    // Enter space button: audio + pointer lock
-    const enterBtn = document.getElementById("enterBtn");
-    enterBtn.addEventListener("click", async ()=>{
-      await ensureAudio();
-      playNote();
-      if(!isMobile()){
-        plc.lock();
-      }
-      walking = true;
-      $("#hudTip").textContent = "Walk mode on. Collect words. Try not to trip.";
-      setTimeout(()=> $("#hudTip").textContent = "Collect 4 category words to trigger highlights.", 2000);
-    });
+    function buildPoster(item, pos, rotY){
+      const group = new THREE.Group();
+      group.position.copy(pos);
+      group.rotation.y = rotY;
 
-    plc.addEventListener("lock", ()=>{ walking = true; });
-    plc.addEventListener("unlock", ()=>{ walking = false; });
-
-    // Reduce motion toggle
-    let reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    document.getElementById("reduceBtn").addEventListener("click", ()=>{
-      reduceMotion = !reduceMotion;
-      $("#hudTip").textContent = reduceMotion ? "Reduced motion enabled." : "Reduced motion disabled.";
-      setTimeout(()=> $("#hudTip").textContent = "Collect 4 category words to trigger highlights.", 1500);
-      playClick();
-    });
-
-    // Scroll -> subtle camera drift (keeps the background alive without hijacking)
-    let scrollT = 0;
-    ScrollTrigger.create({
-      trigger: document.body,
-      start: "top top",
-      end: "bottom bottom",
-      onUpdate: (self)=>{ scrollT = self.progress; }
-    });
-
-    // Section triggers -> theme changes
-    ["filmmaker","photographer","digital","events"].forEach((id)=>{
-      ScrollTrigger.create({
-        trigger: "#"+id,
-        start: "top 60%",
-        end: "bottom 40%",
-        onEnter: ()=> setTheme(id === "photographer" ? "photo" : id),
-        onEnterBack: ()=> setTheme(id === "photographer" ? "photo" : id),
+      // Frame
+      const frameGeo = new THREE.PlaneGeometry(1.15, 1.72);
+      const frameMat = new THREE.MeshStandardMaterial({
+        color: 0x0a0a10,
+        roughness: 0.6,
+        metalness: 0.1
       });
-    });
+      const frame = new THREE.Mesh(frameGeo, frameMat);
+      group.add(frame);
 
-    // Basic highlight unlock: collect 4 words -> animate nav glow
-    const unlocked = new Set();
-    function unlock(word){
-      unlocked.add(word);
-      if(unlocked.size >= 4){
-        document.querySelectorAll(".nav a").forEach(a=>{
-          a.style.borderColor = "rgba(255,255,255,.28)";
-          a.style.background = "rgba(255,255,255,.08)";
-        });
-        $("#hudTip").textContent = "Unlocked: all sections highlighted. Humans love gamification.";
-        setTimeout(()=> $("#hudTip").textContent = "Collect 4 category words to trigger highlights.", 2400);
+      // Poster surface slightly forward
+      const posterGeo = new THREE.PlaneGeometry(1.05, 1.60);
+      const posterMat = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        roughness: 0.95,
+        metalness: 0.0,
+        emissive: new THREE.Color(0x000000),
+        emissiveIntensity: 0.0
+      });
+      const poster = new THREE.Mesh(posterGeo, posterMat);
+      poster.position.z = 0.012;
+      poster.userData = { item };
+      group.add(poster);
+
+      // Small label plaque
+      const plaqueGeo = new THREE.PlaneGeometry(1.10, 0.18);
+      const plaqueTex = makePlaqueTexture(item.title, item.category);
+      const plaqueMat = new THREE.MeshBasicMaterial({ map: plaqueTex, transparent:true, opacity: 0.95 });
+      const plaque = new THREE.Mesh(plaqueGeo, plaqueMat);
+      plaque.position.set(0, -0.98, 0.012);
+      group.add(plaque);
+
+      // Spotlight "gallery" feel
+      const spot = new THREE.SpotLight(0xffffff, 0.7, 5.5, Math.PI/5, 0.55, 1.6);
+      spot.position.set(0, 1.6, 1.0);
+      spot.target = poster;
+      group.add(spot);
+      group.add(spot.target);
+
+      // Gentle breathing animation
+      if(window.gsap){
+        gsap.to(group.position, { y: group.position.y + 0.03, duration: 2.6 + Math.random(), yoyo:true, repeat:-1, ease:"sine.inOut" });
+      }
+
+      // Texture: load image or fallback placeholder
+      const accent = accentForCategory(item.category);
+      const placeholder = makePlaceholderTexture(item.title, item.subtitle || item.category, accent);
+
+      function applyTexture(tex){
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        poster.material.map = tex;
+        poster.material.needsUpdate = true;
+      }
+
+      // If YouTube and no image path, use YT thumb
+      let src = item.image || "";
+      if(item.kind === "youtube" && (!src || src.trim()==="")){
+        const id = item.youtubeId;
+        if(id && id !== "PASTE_YOUTUBE_ID_HERE"){
+          src = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+        }
+      }
+
+      if(src){
+        loader.load(
+          src,
+          (tex)=> applyTexture(tex),
+          undefined,
+          ()=> applyTexture(placeholder)
+        );
       }else{
-        $("#hudTip").textContent = `Unlocked: ${Array.from(unlocked).join(", ")} (${unlocked.size}/4)`;
-        setTimeout(()=> $("#hudTip").textContent = "Collect 4 category words to trigger highlights.", 2000);
+        applyTexture(placeholder);
+      }
+
+      return { group, poster };
+    }
+
+    function makePlaqueTexture(title, category){
+      const c = document.createElement("canvas");
+      c.width = 1024; c.height = 160;
+      const ctx = c.getContext("2d");
+      ctx.clearRect(0,0,c.width,c.height);
+
+      // background
+      ctx.fillStyle = "rgba(0,0,0,0.45)";
+      roundRect(ctx, 20, 20, c.width-40, c.height-40, 28);
+      ctx.fill();
+
+      // border
+      ctx.strokeStyle = "rgba(255,255,255,0.18)";
+      ctx.lineWidth = 4;
+      roundRect(ctx, 20, 20, c.width-40, c.height-40, 28);
+      ctx.stroke();
+
+      // accent
+      ctx.fillStyle = accentForCategory(category);
+      ctx.globalAlpha = 0.18;
+      ctx.fillRect(48, 52, 14, 56);
+      ctx.globalAlpha = 1;
+
+      // text
+      ctx.fillStyle = "rgba(244,244,246,0.92)";
+      ctx.font = "900 46px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
+      ctx.textBaseline = "middle";
+      ctx.fillText((title||"Untitled"), 78, 80);
+
+      ctx.fillStyle = "rgba(244,244,246,0.62)";
+      ctx.font = "800 24px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
+      ctx.fillText((category||"").toUpperCase(), c.width-240, 80);
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.needsUpdate = true;
+      return tex;
+    }
+
+    function roundRect(ctx, x, y, w, h, r){
+      ctx.beginPath();
+      ctx.moveTo(x+r, y);
+      ctx.arcTo(x+w, y, x+w, y+h, r);
+      ctx.arcTo(x+w, y+h, x, y+h, r);
+      ctx.arcTo(x, y+h, x, y, r);
+      ctx.arcTo(x, y, x+w, y, r);
+      ctx.closePath();
+    }
+
+    // Place posters on walls (simple layout)
+    let posters = []; // [{group, poster, item}]
+    function rebuildPosters(){
+      posterGroup.clear();
+      posters = [];
+
+      const items = GALLERY.filter(g => activeCategory === "All" ? true : g.category === activeCategory);
+
+      // wall positions
+      const wallZ = ROOM.d/2 - 0.08;     // back wall inner side
+      const wallZ2 = -ROOM.d/2 + 0.08;   // front wall inner side
+      const wallX = ROOM.w/2 - 0.08;
+      const wallX2 = -ROOM.w/2 + 0.08;
+
+      // Distribute around the room
+      const slots = [];
+      // back wall
+      for(let i=0;i<3;i++) slots.push({ pos: new THREE.Vector3(-3.2 + i*3.2, 1.55, -wallZ2), rot: 0 });
+      // right wall
+      for(let i=0;i<3;i++) slots.push({ pos: new THREE.Vector3(wallX, 1.55, -3.2 + i*3.2), rot: -Math.PI/2 });
+      // front wall
+      for(let i=0;i<3;i++) slots.push({ pos: new THREE.Vector3(-3.2 + i*3.2, 1.55, wallZ), rot: Math.PI });
+      // left wall
+      for(let i=0;i<3;i++) slots.push({ pos: new THREE.Vector3(-wallX2, 1.55, -3.2 + i*3.2), rot: Math.PI/2 });
+
+      items.forEach((item, i)=>{
+        const slot = slots[i % slots.length];
+        const built = buildPoster(item, slot.pos, slot.rot);
+        posterGroup.add(built.group);
+        posters.push({ group: built.group, poster: built.poster, item });
+      });
+
+      // Rebuild audio emitters
+      audioEngine.rebuild(posters);
+    }
+    rebuildPosters();
+
+    // ---------- Spatial audio engine ----------
+    class SpatialAudioEngine{
+      constructor(){
+        this.ctx = null;
+        this.listener = null;
+        this.ready = false;
+        this.sources = new Map(); // id -> {panner, gain, node}
+      }
+
+      async start(){
+        if(this.ready) return true;
+        try{
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+          await this.ctx.resume();
+          this.listener = this.ctx.listener;
+
+          this.master = this.ctx.createGain();
+          this.master.gain.value = 0.9;
+          this.master.connect(this.ctx.destination);
+
+          this.ready = true;
+          return true;
+        }catch(e){
+          console.warn("Audio start failed:", e);
+          this.ready = false;
+          return false;
+        }
+      }
+
+      stopAll(){
+        for(const [,s] of this.sources){
+          try{ s.node?.stop?.(); }catch{}
+        }
+        this.sources.clear();
+      }
+
+      async rebuild(posters){
+        if(!this.ready) return;
+        this.stopAll();
+        for(const p of posters){
+          const item = p.item;
+          if(item.kind !== "audio") continue;
+          await this._createEmitter(item, p.group);
+        }
+      }
+
+      async _createEmitter(item, group){
+        const panner = this.ctx.createPanner();
+        panner.panningModel = "HRTF";
+        panner.distanceModel = "inverse";
+        panner.refDistance = 1.4;
+        panner.maxDistance = 10;
+        panner.rolloffFactor = 1.2;
+
+        const gain = this.ctx.createGain();
+        gain.gain.value = 0.0;
+        panner.connect(gain);
+        gain.connect(this.master);
+
+        let node = null;
+
+        if(item.audio){
+          try{
+            const res = await fetch(item.audio);
+            const arr = await res.arrayBuffer();
+            const buf = await this.ctx.decodeAudioData(arr);
+            const src = this.ctx.createBufferSource();
+            src.buffer = buf;
+            src.loop = true;
+
+            const lp = this.ctx.createBiquadFilter();
+            lp.type = "lowpass";
+            lp.frequency.value = 1400;
+
+            src.connect(lp);
+            lp.connect(panner);
+
+            src.start();
+            node = src;
+          }catch(e){
+            console.warn("Audio file failed, using oscillator:", item.audio, e);
+            node = this._fallbackOsc(panner);
+          }
+        }else{
+          node = this._fallbackOsc(panner);
+        }
+
+        this.sources.set(item.id, { item, group, panner, gain, node });
+      }
+
+      _fallbackOsc(target){
+        const osc = this.ctx.createOscillator();
+        osc.type = "triangle";
+        osc.frequency.value = 220 + Math.random()*120;
+
+        const lfo = this.ctx.createOscillator();
+        lfo.type = "sine";
+        lfo.frequency.value = 0.18 + Math.random()*0.25;
+
+        const lfoGain = this.ctx.createGain();
+        lfoGain.gain.value = 30;
+
+        lfo.connect(lfoGain);
+        lfoGain.connect(osc.frequency);
+
+        const g = this.ctx.createGain();
+        g.gain.value = 0.12;
+
+        osc.connect(g);
+        g.connect(target);
+
+        lfo.start();
+        osc.start();
+        return osc;
+      }
+
+      updateListener(cam){
+        if(!this.ready) return;
+        const p = cam.position;
+        this.listener.positionX.value = p.x;
+        this.listener.positionY.value = p.y;
+        this.listener.positionZ.value = p.z;
+
+        const fwd = new THREE.Vector3(0,0,-1).applyQuaternion(cam.quaternion);
+        const up  = new THREE.Vector3(0,1,0).applyQuaternion(cam.quaternion);
+
+        this.listener.forwardX.value = fwd.x;
+        this.listener.forwardY.value = fwd.y;
+        this.listener.forwardZ.value = fwd.z;
+        this.listener.upX.value = up.x;
+        this.listener.upY.value = up.y;
+        this.listener.upZ.value = up.z;
+      }
+
+      updateEmitters(cam){
+        if(!this.ready) return;
+        for(const [,s] of this.sources){
+          const wp = new THREE.Vector3();
+          s.group.getWorldPosition(wp);
+
+          s.panner.positionX.value = wp.x;
+          s.panner.positionY.value = wp.y;
+          s.panner.positionZ.value = wp.z;
+
+          const d = wp.distanceTo(cam.position);
+          const v = Math.max(0, 1.0 - (d/4.0));
+          s.gain.gain.value = v*v*0.85;
+        }
       }
     }
 
-    // Resize
-    window.addEventListener("resize", ()=>{
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      camera.aspect = window.innerWidth/window.innerHeight;
-      camera.updateProjectionMatrix();
-      showJoystickIfNeeded();
+    const audioEngine = new SpatialAudioEngine();
+
+    audioBtn.addEventListener("click", async ()=>{
+      const ok = await audioEngine.start();
+      audioBtn.textContent = ok ? "Audio on" : "Audio blocked";
+      if(ok) audioEngine.rebuild(posters);
     });
 
-    // Render loop
+    // ---------- Interaction (raycast posters) ----------
+    let hovered = null;
+
+    function findHit(){
+      raycaster.setFromCamera(pointer, camera);
+      const meshes = posters.map(p => p.poster);
+      const hits = raycaster.intersectObjects(meshes, false);
+      if(hits.length){
+        const mesh = hits[0].object;
+        const item = mesh.userData.item;
+        return { mesh, item, point: hits[0].point };
+      }
+      return null;
+    }
+
+    function applyHover(hit){
+      if(hovered && (!hit || hovered.mesh !== hit.mesh)){
+        hovered.mesh.material.emissive.setHex(0x000000);
+        hovered.mesh.material.emissiveIntensity = 0.0;
+        hovered = null;
+      }
+      if(hit && (!hovered || hovered.mesh !== hit.mesh)){
+        hovered = hit;
+        hit.mesh.material.emissive.setHex(0xffffff);
+        hit.mesh.material.emissiveIntensity = 0.18;
+      }
+    }
+
+    function tryInteract(){
+      if(!hovered) return;
+      selectedItem = hovered.item;
+      openModal(selectedItem);
+    }
+
+    // Click / tap to open
+    renderer.domElement.addEventListener("click", (e)=>{
+      if(isMobile()){
+        // tap location ray
+        const r = canvas.getBoundingClientRect();
+        pointer.set(
+          ((e.clientX - r.left) / r.width) * 2 - 1,
+          -(((e.clientY - r.top) / r.height) * 2 - 1)
+        );
+      }else{
+        pointer.set(0,0);
+      }
+      const hit = findHit();
+      if(hit){
+        openModal(hit.item);
+      }
+    });
+
+    function updateCenterHover(){
+      if(isMobile()){
+        selEl.textContent = "tap posters";
+        distEl.textContent = "–";
+        return;
+      }
+      pointer.set(0,0);
+      const hit = findHit();
+      applyHover(hit);
+      if(hit){
+        selEl.textContent = hit.item.title || "Untitled";
+        const wp = new THREE.Vector3();
+        hit.mesh.getWorldPosition(wp);
+        distEl.textContent = wp.distanceTo(camera.position).toFixed(2) + "m";
+      }else{
+        selEl.textContent = "none";
+        distEl.textContent = "–";
+      }
+    }
+
+    // ---------- Movement ----------
+    const v = new THREE.Vector3();
+    const forward = new THREE.Vector3();
+    const right = new THREE.Vector3();
+
+    function move(dt){
+      const base = keys.shift ? 4.4 : 2.9;
+      const f = (keys.w?1:0) - (keys.s?1:0);
+      const s = (keys.d?1:0) - (keys.a?1:0);
+
+      const jf = -moveStick.y;
+      const js = moveStick.x;
+
+      const mf = THREE.MathUtils.clamp(f + jf, -1, 1);
+      const ms = THREE.MathUtils.clamp(s + js, -1, 1);
+
+      if(!walking) return;
+
+      const yaw = camera.rotation.y;
+      forward.set(-Math.sin(yaw), 0, -Math.cos(yaw));
+      right.set(Math.cos(yaw), 0, -Math.sin(yaw));
+
+      v.set(0,0,0);
+      v.addScaledVector(forward, mf);
+      v.addScaledVector(right, ms);
+      if(v.lengthSq() > 0.0001) v.normalize();
+
+      camera.position.addScaledVector(v, base * dt);
+      clampToRoom();
+    }
+
+    // ---------- Fullscreen ----------
+    fsBtn.addEventListener("click", async ()=>{
+      try{
+        if(!document.fullscreenElement){
+          await document.documentElement.requestFullscreen();
+        }else{
+          await document.exitFullscreen();
+        }
+      }catch{}
+    });
+
+    // ---------- Help ----------
+    helpBtn.addEventListener("click", ()=>{
+      openModal({ title:"How this gallery works", category:"Help", kind:"info", subtitle:"10×10m room · posters as media nodes", note:"" });
+      mBody.innerHTML = `
+        <p>
+          This is a single-file WebGL gallery. Posters live on the walls. Each poster can open:
+          <b>an image</b>, <b>a YouTube video</b>, or <b>an audio track</b>.
+        </p>
+        <div class="mediaBox">
+          <div class="mono" style="font-size:12px; color:rgba(244,244,246,.8)">
+            <b>Desktop</b>: Click canvas → mouse look. WASD move. Shift sprint. Press <b>E</b> to open highlighted poster.<br/><br/>
+            <b>Mobile</b>: Drag to look. Use joystick to move. Tap posters to open.
+          </div>
+        </div>
+        <div class="hr"></div>
+        <p><b>Add your media:</b> Put files in <code>/assets/</code> and update the <code>GALLERY</code> array in the script.</p>
+        <ul>
+          <li>Images: <code>kind: "image"</code> + <code>image: "assets/..."</code></li>
+          <li>YouTube: <code>kind: "youtube"</code> + <code>youtubeId: "..."</code></li>
+          <li>Audio: <code>kind: "audio"</code> + <code>audio: "assets/audio/track.mp3"</code></li>
+        </ul>
+        <p style="color:rgba(244,244,246,.7)">Audio needs a user click to start because browsers are protective to the point of comedy.</p>
+      `;
+    });
+
+    // ---------- Resize ----------
+    addEventListener("resize", ()=>{
+      renderer.setSize(innerWidth, innerHeight);
+      camera.aspect = innerWidth/innerHeight;
+      camera.updateProjectionMatrix();
+      updateJoystickVisibility();
+    });
+
+    // safe rebuild
+    function rebuildPostersSafe(){
+      rebuildPosters();
+      clampToRoom();
+    }
+
+    // ---------- Render loop + FPS ----------
     let last = performance.now();
+    let acc = 0, frames = 0;
+
     function tick(now){
       requestAnimationFrame(tick);
       const dt = Math.min(0.033, (now - last) / 1000);
       last = now;
 
-      // Subtle scroll drift
-      if(!walking && !isMobile()){
-        camera.position.x = THREE.MathUtils.lerp(camera.position.x, (scrollT - 0.5) * 1.1, 0.04);
-        camera.position.y = THREE.MathUtils.lerp(camera.position.y, 1.2 + Math.sin(now*0.0005)*0.08, 0.03);
-        camera.lookAt(0, 0.8, 0);
+      acc += dt; frames++;
+      if(acc > 0.6){
+        fpsEl.textContent = Math.round(frames/acc).toString();
+        acc = 0; frames = 0;
       }
 
-      // Move in walk mode
-      const speed = (keys.shift ? 7.0 : 4.2);
-      dir.set(0,0,0);
+      move(dt);
 
+      // Hover highlight
+      updateCenterHover();
+
+      // subtle bob
       if(walking){
-        const fwd = (keys.w ? 1 : 0) - (keys.s ? 1 : 0);
-        const str = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
-
-        // mobile joystick also affects movement
-        const mf = -moveStick.y; // up on stick is forward
-        const ms = moveStick.x;
-
-        const forward = THREE.MathUtils.clamp(fwd + mf, -1, 1);
-        const strafe  = THREE.MathUtils.clamp(str + ms, -1, 1);
-
-        if(forward || strafe){
-          dir.z = -forward;
-          dir.x = strafe;
-          dir.normalize();
-        }
-
-        // Convert to world space based on camera rotation
-        const yaw = camera.rotation.y;
-        const cos = Math.cos(yaw), sin = Math.sin(yaw);
-        const vx = dir.x * cos - dir.z * sin;
-        const vz = dir.x * sin + dir.z * cos;
-
-        vel.x = vx * speed;
-        vel.z = vz * speed;
-
-        camera.position.x += vel.x * dt;
-        camera.position.z += vel.z * dt;
+        camera.position.y = 1.6 + Math.sin(now*0.006) * 0.02;
       }
 
-      // Animate signs drifting towards camera (traffic sign flow)
-      const signSpeed = reduceMotion ? 0.0 : 1.0;
-      signGroup.children.forEach((s, i)=>{
-        s.position.z += (s.userData.speed * dt * signSpeed);
-        s.position.y += Math.sin(now*0.001 + s.userData.wobble) * 0.0009 * signSpeed;
-        s.rotation.y += Math.sin(now*0.0007 + i) * 0.00025 * signSpeed;
-        if(s.position.z > 10){
-          // recycle to back, swap text sometimes
-          s.position.z = -80 - Math.random()*30;
-          s.position.x = (Math.random()-0.5)*10;
-          s.position.y = (Math.random()-0.2)*4;
-          if(Math.random() < 0.7){
-            const pick = signTexts[(Math.random()*signTexts.length)|0];
-            s.material.map = makeSignTexture(pick.t, pick.f);
-            s.material.needsUpdate = true;
-          }
-        }
-      });
-
-      // Token bob + collection
-      tokenGroup.children.forEach((t, i)=>{
-        t.position.y += Math.sin(now*0.0012 + i) * 0.0006;
-        t.rotation.y += 0.0008;
-        const d = t.position.distanceTo(camera.position);
-        if(d < t.userData.r){
-          const word = t.userData.word;
-          tokenGroup.remove(t);
-          collected++;
-          collectedEl.textContent = String(collected);
-          unlock(word);
-          playNote();
-          if(collected % 10 === 0) spawnTokens();
-        }
-      });
+      audioEngine.updateListener(camera);
+      audioEngine.updateEmitters(camera);
 
       renderer.render(scene, camera);
     }
     requestAnimationFrame(tick);
-
-    // Canvas click sound
-    renderer.domElement.addEventListener("click", async ()=>{
-      await ensureAudio();
-      playClick();
-    });
-
-    // Nav click -> theme reaction + small sound
-    document.querySelectorAll(".nav a").forEach(a=>{
-      a.addEventListener("click", async ()=>{
-        await ensureAudio();
-        playNote();
-        const section = a.dataset.section;
-        if(section === "photographer") setTheme("photo");
-        else setTheme(section);
-      });
-    });
 
   </script>
 </body>
