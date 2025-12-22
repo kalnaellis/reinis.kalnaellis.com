@@ -4,56 +4,45 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="color-scheme" content="dark" />
-  <title>Reinis Kalnaellis · Digital Artist Gallery</title>
+  <title>Reinis Kalnaellis · WebGL Gallery Room</title>
   <meta name="description" content="A 10×10m WebGL gallery room with augmented posters, spatial sound, and interactive media (images, music, YouTube)." />
   <style>
     :root{
       --bg:#050508;
       --fg:#f4f4f6;
-      --muted:rgba(244,244,246,.7);
+      --muted:rgba(244,244,246,.72);
       --muted2:rgba(244,244,246,.52);
-      --panel:rgba(255,255,255,.06);
-      --panel2:rgba(255,255,255,.10);
       --stroke:rgba(255,255,255,.14);
       --shadow: 0 18px 70px rgba(0,0,0,.55);
       --r: 22px;
     }
     *{box-sizing:border-box}
     html,body{height:100%; margin:0; background:var(--bg); color:var(--fg); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; overflow:hidden;}
-    a{color:inherit}
     #c{position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none;}
     #ui{position:fixed; inset:0; pointer-events:none; z-index:20;}
     .top{
       position:absolute; left:12px; top:12px;
-      display:flex; flex-direction:column; gap:10px;
+      width:min(440px, calc(100vw - 24px));
       pointer-events:auto;
-      width:min(420px, calc(100vw - 24px));
+      display:flex; flex-direction:column; gap:10px;
     }
     .card{
-      background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
       border:1px solid var(--stroke);
       border-radius: var(--r);
       box-shadow: var(--shadow);
       backdrop-filter: blur(12px);
-      padding: 14px 14px;
+      padding: 14px;
     }
-    .title{
-      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
-    }
-    .title h1{
+    h1{
       margin:0;
-      font-size: 14px;
+      font-size: 13px;
       letter-spacing:.14em;
       text-transform:uppercase;
       font-weight:900;
     }
-    .title .sub{
-      margin-top:6px;
-      color:var(--muted);
-      font-size: 13px;
-      line-height:1.35;
-    }
-    .btnRow{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
+    .sub{margin-top:8px; color:var(--muted); font-size:13px; line-height:1.35}
+    .row{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
     .btn{
       appearance:none; border:none; cursor:pointer;
       padding: 10px 12px;
@@ -69,7 +58,6 @@
     }
     .btn:hover{background:rgba(255,255,255,.14)}
     .btn.primary{background:rgba(255,255,255,.18); border-color:rgba(255,255,255,.26)}
-    .btn.tiny{padding:8px 10px; font-size:10px}
     .chipRow{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
     .chip{
       cursor:pointer;
@@ -83,33 +71,35 @@
       color:rgba(244,244,246,.86);
       user-select:none;
     }
-    .chip:hover{background:rgba(0,0,0,.26)}
     .chip.active{background:rgba(255,255,255,.10); border-color:rgba(255,255,255,.26)}
-    .hud{
-      position:absolute; left:12px; bottom:12px;
-      pointer-events:auto;
-      width:min(420px, calc(100vw - 24px));
-    }
     .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
-    .line{color:var(--muted2); font-size:12px; line-height:1.35}
-    .k{
+    .kv{
       display:flex; justify-content:space-between; gap:10px;
       border-top:1px solid rgba(255,255,255,.10);
       margin-top:10px; padding-top:10px;
-      color:rgba(244,244,246,.84);
+      color:rgba(244,244,246,.86);
       font-size:12px;
+    }
+    #status{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius: 16px;
+      background: rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.12);
+      color: rgba(244,244,246,.78);
+      font-size: 12px;
+      line-height: 1.35;
+      white-space: pre-wrap;
     }
 
     /* Mobile joystick */
     #stick{
-      position:absolute;
-      right:12px;
-      bottom:12px;
+      position:absolute; right:12px; bottom:12px;
       width:120px; height:120px;
       pointer-events:auto;
       display:none;
       touch-action:none;
-      z-index:21;
+      z-index:25;
     }
     .ring{
       width:100%; height:100%;
@@ -183,8 +173,8 @@
     .hr{height:1px; background:rgba(255,255,255,.10); margin: 12px 0}
 
     @media (max-width: 520px){
-      .title h1{font-size:13px}
-      .btn{padding: 9px 11px}
+      h1{font-size:12px}
+      .btn{padding:9px 11px}
     }
   </style>
 </head>
@@ -194,42 +184,27 @@
   <div id="ui">
     <div class="top">
       <div class="card">
-        <div class="title">
-          <div>
-            <h1>Reinis Kalnaellis · Digital Artist Gallery</h1>
-            <div class="sub">
-              A 10×10m room with augmented posters (films, photos, music, YouTube).
-              Walk around. Tap posters. Hear spatial sound.
-            </div>
-          </div>
-          <button class="btn tiny" id="helpBtn" type="button">Help</button>
+        <h1>Reinis Kalnaellis · WebGL Gallery Room</h1>
+        <div class="sub">
+          If you see only a black void: this file now shows diagnostics.
+          Posters load from <code>./assets/</code> and fall back to placeholders if paths are wrong.
         </div>
 
-        <div class="btnRow">
+        <div class="row">
           <button class="btn primary" id="enterBtn" type="button">Enter room</button>
           <button class="btn" id="audioBtn" type="button">Start audio</button>
           <button class="btn" id="fsBtn" type="button">Fullscreen</button>
+          <button class="btn" id="helpBtn" type="button">Help</button>
         </div>
 
         <div class="chipRow" id="filters"></div>
 
-        <div class="k mono">
+        <div class="kv mono">
           <div>Selected: <span id="sel">none</span></div>
           <div>Distance: <span id="dist">–</span></div>
         </div>
-      </div>
-    </div>
 
-    <div class="hud">
-      <div class="card">
-        <div class="line mono" id="controlsLine">
-          Desktop: click canvas → mouse look · WASD move · Shift sprint · E interact<br/>
-          Mobile: drag to look · joystick to move · tap poster to open
-        </div>
-        <div class="k mono">
-          <div>Room: <span id="room">10×10m</span></div>
-          <div>FPS: <span id="fps">–</span></div>
-        </div>
+        <div id="status" class="mono">Booting…</div>
       </div>
     </div>
 
@@ -251,103 +226,30 @@
     </div>
   </div>
 
-  <!-- GSAP for subtle poster breathing (optional, but nice) -->
+  <!-- Load libs as classic scripts (more robust on Pages than ESM imports) -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/PointerLockControls.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 
-  <script type="module">
-    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
-    import { PointerLockControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/PointerLockControls.js";
+  <script>
+  (() => {
+    const statusEl = document.getElementById("status");
+    const log = (msg) => { statusEl.textContent = String(msg); };
 
-    /*
-      ==========================
-      HOW TO USE THIS PAGE
-      ==========================
-      1) Host this as index.html on GitHub Pages.
-      2) Create folders (optional but recommended):
-         /assets/posters/
-         /assets/photos/
-         /assets/audio/
-      3) Replace the placeholder paths in GALLERY with your real media.
+    // Hard fail early if libs didn't load (this is the #1 reason for "black screen with UI")
+    if (!window.THREE) {
+      log("ERROR: three.js did not load.\n\nFix:\n- Check your network blocks.\n- Open DevTools Console for 404/CSP errors.\n- If you use a strict CSP, allow cdn.jsdelivr.net.");
+      return;
+    }
 
-      Notes:
-      - YouTube posters open an embedded player modal on click/tap.
-      - Audio posters can be spatialized: each poster is a sound source in 3D.
-      - Browsers require a user gesture to start audio, hence "Start audio".
-    */
-
-    // ---------- Gallery data (EDIT THIS) ----------
-    const GALLERY = [
-      {
-        id: "thelma",
-        category: "Film",
-        title: "Thelma’s Perfect Birthday",
-        subtitle: "Feature animation · poster placeholder",
-        kind: "image",
-        image: "assets/posters/thelma.jpg",
-        note: "Replace this with your official poster image. Clicking opens a larger view."
-      },
-      {
-        id: "hugo",
-        category: "Film",
-        title: "Singing Hugo",
-        subtitle: "Animated short · poster placeholder",
-        kind: "youtube",
-        youtubeId: "kZB-OEWc0eQ&t",
-        image: "", // leave empty to auto-use YouTube thumbnail
-        note: "Replace youtubeId. Poster uses YouTube thumbnail automatically."
-      },
-      {
-        id: "rolleiflex",
-        category: "Photography",
-        title: "Rolleiflex Lens Chase",
-        subtitle: "Analog photograph · placeholder",
-        kind: "image",
-        image: "assets/photos/rolleiflex_01.jpg",
-        note: "Put your print/edition info here."
-      },
-      {
-        id: "doubleexp",
-        category: "Photography",
-        title: "Double Exposure Study",
-        subtitle: "Analog chaos · placeholder",
-        kind: "image",
-        image: "assets/photos/double_exposure.jpg",
-        note: "Optional: list edition sizes, paper, pricing."
-      },
-      {
-        id: "soundspace",
-        category: "Music",
-        title: "Spatial Sketch",
-        subtitle: "Audio loop · placeholder",
-        kind: "audio",
-        image: "assets/posters/music_01.jpg",
-        audio: "assets/audio/track01.mp3",
-        note: "Put an mp3 here. Audio becomes louder as you approach."
-      },
-      {
-        id: "ai_gallery",
-        category: "Digital",
-        title: "AI / VR Experiments",
-        subtitle: "Interactive demo reel · placeholder",
-        kind: "youtube",
-        youtubeId: "PASTE_YOUTUBE_ID_HERE",
-        image: "",
-        note: "Use this for your YouTube playlists or demo videos."
-      }
-    ];
-
-    const CATEGORIES = ["All", ...Array.from(new Set(GALLERY.map(g => g.category)))];
-
-    // ---------- DOM ----------
     const canvas = document.getElementById("c");
-    const filtersEl = document.getElementById("filters");
-    const selEl = document.getElementById("sel");
-    const distEl = document.getElementById("dist");
-    const fpsEl = document.getElementById("fps");
     const enterBtn = document.getElementById("enterBtn");
     const audioBtn = document.getElementById("audioBtn");
     const fsBtn = document.getElementById("fsBtn");
     const helpBtn = document.getElementById("helpBtn");
+    const filtersEl = document.getElementById("filters");
+    const selEl = document.getElementById("sel");
+    const distEl = document.getElementById("dist");
 
     const backdrop = document.getElementById("backdrop");
     const closeBtn = document.getElementById("closeBtn");
@@ -355,9 +257,43 @@
     const mSub = document.getElementById("mSub");
     const mBody = document.getElementById("mBody");
 
-    // ---------- Helpers ----------
     const isMobile = () => matchMedia("(pointer: coarse)").matches;
 
+    // ========= EDIT YOUR CONTENT HERE =========
+    const GALLERY = [
+      { id:"thelma", category:"Film", title:"Thelma’s Perfect Birthday", subtitle:"Poster", kind:"image", image:"./assets/posters/thelma.jpg", note:"Replace image path." },
+      { id:"hugo", category:"Film", title:"Singing Hugo", subtitle:"Trailer / clip", kind:"youtube", youtubeId:"PASTE_YOUTUBE_ID_HERE", image:"", note:"Set youtubeId. Thumbnail auto-loads." },
+      { id:"photo01", category:"Photography", title:"Analog Print 01", subtitle:"Placeholder photo", kind:"image", image:"./assets/photos/photo01.jpg", note:"Put your real file here." },
+      { id:"music01", category:"Music", title:"Spatial Track 01", subtitle:"Audio poster", kind:"audio", image:"./assets/posters/music_01.jpg", audio:"./assets/audio/track01.mp3", note:"Audio becomes louder as you approach." },
+      { id:"digital01", category:"Digital", title:"AI / VR Experiments", subtitle:"YouTube", kind:"youtube", youtubeId:"PASTE_YOUTUBE_ID_HERE", image:"", note:"Set youtubeId." },
+    ];
+    // ========================================
+
+    const CATEGORIES = ["All", ...Array.from(new Set(GALLERY.map(g => g.category)))];
+    let activeCategory = "All";
+
+    function escapeHtml(str){
+      return (str||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+    }
+    function renderModalBody(item){
+      const safeNote = item.note ? `<div class="hr"></div><div style="color:rgba(244,244,246,.7)">${escapeHtml(item.note)}</div>` : "";
+      if(item.kind === "youtube"){
+        const id = item.youtubeId && item.youtubeId !== "PASTE_YOUTUBE_ID_HERE" ? item.youtubeId : "";
+        const warn = !id ? `<div class="mediaBox"><b>Missing YouTube ID.</b><div style="color:rgba(244,244,246,.72)">Edit <code>youtubeId</code> in <code>GALLERY</code>.</div></div>` : "";
+        const player = id ? `<div class="mediaBox"><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen src="https://www.youtube-nocookie.com/embed/${id}?rel=0"></iframe></div>` : "";
+        return `<div><b>${escapeHtml(item.subtitle || "")}</b></div>${warn}${player}${safeNote}`;
+      }
+      if(item.kind === "audio"){
+        const src = item.audio || "";
+        const warn = !src ? `<div class="mediaBox"><b>Missing audio file.</b></div>` : "";
+        const player = src ? `<div class="mediaBox"><audio controls preload="none" src="${src}"></audio></div>` : "";
+        return `<div><b>${escapeHtml(item.subtitle || "")}</b></div><div style="color:rgba(244,244,246,.72)">Spatial audio in-room (after “Start audio”). Player is fallback.</div>${warn}${player}${safeNote}`;
+      }
+      const src = item.image || "";
+      const img = src ? `<div class="mediaBox"><img alt="${escapeHtml(item.title||"Artwork")}" src="${src}"></div>` :
+                        `<div class="mediaBox"><b>No image path set.</b></div>`;
+      return `<div><b>${escapeHtml(item.subtitle || "")}</b></div>${img}${safeNote}`;
+    }
     function openModal(item){
       mTitle.textContent = item.title || "Untitled";
       mSub.textContent = `${item.category || "Category"} · ${item.kind || "media"}`;
@@ -366,7 +302,6 @@
     }
     function closeModal(){
       backdrop.style.display = "none";
-      // stop iframe playback by clearing it (cheap but effective)
       const iframe = mBody.querySelector("iframe");
       if(iframe) iframe.src = iframe.src;
     }
@@ -374,48 +309,7 @@
     backdrop.addEventListener("click", (e)=>{ if(e.target === backdrop) closeModal(); });
     window.addEventListener("keydown", (e)=>{ if(e.key === "Escape") closeModal(); });
 
-    function renderModalBody(item){
-      const safeNote = item.note ? `<div class="hr"></div><div style="color:rgba(244,244,246,.7)">${escapeHtml(item.note)}</div>` : "";
-      if(item.kind === "youtube"){
-        const id = item.youtubeId && item.youtubeId !== "PASTE_YOUTUBE_ID_HERE" ? item.youtubeId : "";
-        const warn = !id ? `<div class="mediaBox"><b>Missing YouTube ID.</b><div style="color:rgba(244,244,246,.72)">Edit <code>youtubeId</code> in the <code>GALLERY</code> array.</div></div>` : "";
-        const player = id ? `<div class="mediaBox"><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen src="https://www.youtube-nocookie.com/embed/${id}?rel=0"></iframe></div>` : "";
-        return `
-          <div><b>${escapeHtml(item.subtitle || "")}</b></div>
-          ${warn}
-          ${player}
-          ${safeNote}
-        `;
-      }
-      if(item.kind === "audio"){
-        const src = item.audio || "";
-        const warn = !src ? `<div class="mediaBox"><b>Missing audio file.</b><div style="color:rgba(244,244,246,.72)">Set <code>audio</code> to something like <code>assets/audio/track01.mp3</code>.</div></div>` : "";
-        const player = src ? `<div class="mediaBox"><audio controls preload="none" src="${src}"></audio></div>` : "";
-        return `
-          <div><b>${escapeHtml(item.subtitle || "")}</b></div>
-          <div style="color:rgba(244,244,246,.72)">Spatial audio is handled in 3D (if you hit “Start audio”). The player below is just a fallback.</div>
-          ${warn}
-          ${player}
-          ${safeNote}
-        `;
-      }
-      // image/default
-      const src = item.image || "";
-      const img = src ? `<div class="mediaBox"><img alt="${escapeHtml(item.title||"Artwork")}" src="${src}"></div>` :
-                        `<div class="mediaBox"><b>No image path set.</b><div style="color:rgba(244,244,246,.72)">Set <code>image</code> to a file in <code>assets/</code>.</div></div>`;
-      return `
-        <div><b>${escapeHtml(item.subtitle || "")}</b></div>
-        ${img}
-        ${safeNote}
-      `;
-    }
-
-    function escapeHtml(str){
-      return (str||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
-    }
-
-    // ---------- Filter UI ----------
-    let activeCategory = "All";
+    // Filters
     function rebuildFilters(){
       filtersEl.innerHTML = "";
       CATEGORIES.forEach(cat=>{
@@ -425,69 +319,76 @@
         b.addEventListener("click", ()=>{
           activeCategory = cat;
           rebuildFilters();
-          rebuildPostersSafe();
+          rebuildPosters();
         });
         filtersEl.appendChild(b);
       });
     }
     rebuildFilters();
 
-    // ---------- Three.js setup ----------
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:false, powerPreference:"high-performance" });
+    // WebGL init
+    let renderer;
+    try{
+      renderer = new THREE.WebGLRenderer({ canvas, antialias:true, powerPreference:"high-performance" });
+    }catch(e){
+      log("ERROR: WebGL renderer failed to create.\n\nLikely causes:\n- WebGL disabled in browser settings\n- GPU driver issue\n- In-app browser blocking WebGL\n\nDetails:\n" + e);
+      return;
+    }
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.setSize(innerWidth, innerHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x050508);
+    scene.background = new THREE.Color(0x07070c);
+    scene.fog = new THREE.Fog(0x07070c, 6, 18);
 
-    const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 80);
-    camera.position.set(0, 1.6, 3.4);
+    const camera = new THREE.PerspectiveCamera(65, innerWidth/innerHeight, 0.1, 80);
+    camera.position.set(0, 1.6, 3.6);
 
-    // Lighting: gallery-ish
-    scene.add(new THREE.AmbientLight(0xffffff, 0.45));
-    const dir = new THREE.DirectionalLight(0xffffff, 0.75);
-    dir.position.set(4, 6, 3);
-    scene.add(dir);
+    // Brighter gallery lighting so it isn't a void
+    scene.add(new THREE.AmbientLight(0xffffff, 0.70));
+    const key = new THREE.DirectionalLight(0xffffff, 0.9);
+    key.position.set(4, 7, 3);
+    scene.add(key);
+    const fill = new THREE.DirectionalLight(0xffffff, 0.35);
+    fill.position.set(-4, 3, -2);
+    scene.add(fill);
 
-    // Room 10x10m (x,z), height 3m
-    const ROOM = { w: 10, h: 3, d: 10 };
+    // Room 10×10×3
+    const ROOM = { w:10, d:10, h:3 };
     const roomGeo = new THREE.BoxGeometry(ROOM.w, ROOM.h, ROOM.d);
     const roomMat = new THREE.MeshStandardMaterial({
-      color: 0x0b0b12,
-      roughness: 0.95,
+      color: 0x121225,
+      roughness: 0.92,
       metalness: 0.0,
+      emissive: new THREE.Color(0x0a0a10),
+      emissiveIntensity: 0.45,
       side: THREE.BackSide
     });
-    const roomMesh = new THREE.Mesh(roomGeo, roomMat);
-    roomMesh.position.y = ROOM.h/2;
-    scene.add(roomMesh);
+    const room = new THREE.Mesh(roomGeo, roomMat);
+    room.position.y = ROOM.h/2;
+    scene.add(room);
 
-    // Floor grid (subtle)
-    const grid = new THREE.GridHelper(ROOM.w, 20, 0x666666, 0x333333);
+    // Floor plane with visible tone
+    const floorGeo = new THREE.PlaneGeometry(ROOM.w, ROOM.d);
+    const floorMat = new THREE.MeshStandardMaterial({ color:0x0c0c18, roughness:0.98, metalness:0.0 });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI/2;
+    floor.position.y = 0.0;
+    scene.add(floor);
+
+    const grid = new THREE.GridHelper(ROOM.w, 20, 0x888888, 0x333333);
     grid.position.y = 0.01;
-    grid.material.opacity = 0.16;
+    grid.material.opacity = 0.28;
     grid.material.transparent = true;
     scene.add(grid);
 
-    // Ceiling glow strips (fake)
-    const stripGeo = new THREE.PlaneGeometry(ROOM.w*0.9, 0.35);
-    const stripMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent:true, opacity: 0.04 });
-    for(let i=0;i<3;i++){
-      const s = new THREE.Mesh(stripGeo, stripMat);
-      s.rotation.x = Math.PI/2;
-      s.position.set(0, ROOM.h-0.02, -2 + i*2);
-      scene.add(s);
-    }
-
-    // Controls: pointer lock desktop + touch-look mobile
-    const plc = new PointerLockControls(camera, renderer.domElement);
+    // Controls (PointerLockControls is the classic script version)
+    const plc = new THREE.PointerLockControls(camera, renderer.domElement);
     let walking = false;
 
     enterBtn.addEventListener("click", ()=>{
-      if(!isMobile()){
-        plc.lock();
-      }
+      if(!isMobile()) plc.lock();
       walking = true;
     });
     plc.addEventListener("lock", ()=> walking = true);
@@ -505,7 +406,7 @@
       const dx = e.clientX - look.x;
       const dy = e.clientY - look.y;
       look.x = e.clientX; look.y = e.clientY;
-      const s = 0.0024;
+      const s = 0.0025;
       look.yaw -= dx*s;
       look.pitch -= dy*s;
       look.pitch = Math.max(-1.1, Math.min(1.1, look.pitch));
@@ -513,40 +414,36 @@
     });
     window.addEventListener("pointerup", ()=> look.active = false);
 
-    // Keyboard movement
+    // Keys
     const keys = { w:false,a:false,s:false,d:false,shift:false };
     window.addEventListener("keydown", (e)=>{
       const k = e.key.toLowerCase();
-      if(k==="w") keys.w = true;
-      if(k==="a") keys.a = true;
-      if(k==="s") keys.s = true;
-      if(k==="d") keys.d = true;
-      if(k==="shift") keys.shift = true;
+      if(k==="w") keys.w=true;
+      if(k==="a") keys.a=true;
+      if(k==="s") keys.s=true;
+      if(k==="d") keys.d=true;
+      if(k==="shift") keys.shift=true;
       if(k==="e") tryInteract();
     });
     window.addEventListener("keyup", (e)=>{
       const k = e.key.toLowerCase();
-      if(k==="w") keys.w = false;
-      if(k==="a") keys.a = false;
-      if(k==="s") keys.s = false;
-      if(k==="d") keys.d = false;
-      if(k==="shift") keys.shift = false;
+      if(k==="w") keys.w=false;
+      if(k==="a") keys.a=false;
+      if(k==="s") keys.s=false;
+      if(k==="d") keys.d=false;
+      if(k==="shift") keys.shift=false;
     });
 
-    // Mobile joystick movement
+    // Mobile joystick
     const stick = document.getElementById("stick");
     const knob = document.getElementById("knob");
-    let stickActive = false;
-    let stickCenter = { x:0, y:0 };
-    let moveStick = { x:0, y:0 };
+    let stickActive=false, stickCenter={x:0,y:0}, moveStick={x:0,y:0};
 
-    function updateJoystickVisibility(){
-      stick.style.display = isMobile() ? "block" : "none";
-    }
+    function updateJoystickVisibility(){ stick.style.display = isMobile() ? "block" : "none"; }
     updateJoystickVisibility();
 
     stick.addEventListener("pointerdown", (e)=>{
-      stickActive = true;
+      stickActive=true;
       stick.setPointerCapture(e.pointerId);
       const r = stick.getBoundingClientRect();
       stickCenter.x = r.left + r.width/2;
@@ -556,90 +453,74 @@
     });
     stick.addEventListener("pointermove", (e)=>{ if(stickActive) updateStick(e.clientX, e.clientY); });
     stick.addEventListener("pointerup", ()=>{
-      stickActive = false;
-      moveStick.x = 0; moveStick.y = 0;
+      stickActive=false;
+      moveStick.x=0; moveStick.y=0;
       knob.style.transform = "translate(-50%,-50%)";
     });
-
     function updateStick(x,y){
       const dx = x - stickCenter.x;
       const dy = y - stickCenter.y;
-      const max = 34;
+      const max=34;
       const nx = Math.max(-max, Math.min(max, dx));
       const ny = Math.max(-max, Math.min(max, dy));
       knob.style.transform = `translate(${nx - 23}px, ${ny - 23}px)`;
-      moveStick.x = nx / max;
-      moveStick.y = ny / max;
+      moveStick.x = nx/max;
+      moveStick.y = ny/max;
     }
 
-    // Keep camera inside room
     function clampToRoom(){
-      const margin = 0.55;
-      camera.position.x = Math.max(-ROOM.w/2 + margin, Math.min(ROOM.w/2 - margin, camera.position.x));
-      camera.position.z = Math.max(-ROOM.d/2 + margin, Math.min(ROOM.d/2 - margin, camera.position.z));
-      camera.position.y = Math.max(0.4, Math.min(2.2, camera.position.y));
+      const margin=0.55;
+      camera.position.x = Math.max(-ROOM.w/2+margin, Math.min(ROOM.w/2-margin, camera.position.x));
+      camera.position.z = Math.max(-ROOM.d/2+margin, Math.min(ROOM.d/2-margin, camera.position.z));
+      camera.position.y = Math.max(0.5, Math.min(2.2, camera.position.y));
     }
 
-    // ---------- Posters ----------
-    const loader = new THREE.TextureLoader();
+    // Posters
+    const texLoader = new THREE.TextureLoader();
     const posterGroup = new THREE.Group();
     scene.add(posterGroup);
 
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2(0,0);
-    let hovered = null; // { mesh, item }
-    let selectedItem = null;
+    let posters = [];
+    let hovered = null;
 
-    function makePlaceholderTexture(label, sublabel, accent = "#ffffff"){
+    function accentForCategory(cat){
+      return ({ Film:"#7dd3fc", Photography:"#facc15", Music:"#a7f3d0", Digital:"#c4b5fd", Events:"#fda4af" }[cat] || "#ffffff");
+    }
+
+    function makePlaceholderTexture(label, sublabel, accent="#ffffff"){
       const c = document.createElement("canvas");
-      c.width = 1024; c.height = 1536; // poster-ish ratio
+      c.width=1024; c.height=1536;
       const ctx = c.getContext("2d");
 
-      // Background gradient
       const g = ctx.createLinearGradient(0,0,1024,1536);
-      g.addColorStop(0, "#0b0b12");
-      g.addColorStop(1, "#060608");
-      ctx.fillStyle = g;
-      ctx.fillRect(0,0,c.width,c.height);
+      g.addColorStop(0, "#141428");
+      g.addColorStop(1, "#07070c");
+      ctx.fillStyle=g; ctx.fillRect(0,0,c.width,c.height);
 
-      // Noise-ish pattern
-      ctx.globalAlpha = 0.18;
+      ctx.globalAlpha=0.18;
       for(let i=0;i<2200;i++){
-        const x = Math.random()*c.width;
-        const y = Math.random()*c.height;
-        const s = Math.random()*2.2+0.2;
         ctx.fillStyle = `rgba(255,255,255,${Math.random()*0.16})`;
-        ctx.fillRect(x,y,s,s);
+        ctx.fillRect(Math.random()*c.width, Math.random()*c.height, Math.random()*2.2+0.2, Math.random()*2.2+0.2);
       }
-      ctx.globalAlpha = 1;
+      ctx.globalAlpha=1;
 
-      // Border
-      ctx.strokeStyle = "rgba(255,255,255,0.22)";
-      ctx.lineWidth = 10;
-      ctx.strokeRect(30,30,c.width-60,c.height-60);
+      ctx.strokeStyle="rgba(255,255,255,0.22)";
+      ctx.lineWidth=10; ctx.strokeRect(30,30,c.width-60,c.height-60);
 
-      // Accent stripe
-      ctx.fillStyle = accent;
-      ctx.globalAlpha = 0.16;
+      ctx.fillStyle=accent; ctx.globalAlpha=0.18;
       ctx.fillRect(60, 120, c.width-120, 22);
-      ctx.globalAlpha = 1;
+      ctx.globalAlpha=1;
 
-      // Text
-      ctx.fillStyle = "rgba(244,244,246,0.92)";
-      ctx.font = "900 82px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "top";
+      ctx.fillStyle="rgba(244,244,246,0.92)";
+      ctx.font="900 82px ui-sans-serif, system-ui";
+      ctx.textBaseline="top";
+      wrapText(ctx, (label||"PLACEHOLDER").toUpperCase(), 60, 190, c.width-120, 90);
 
-      const t = (label || "PLACEHOLDER").toUpperCase();
-      wrapText(ctx, t, 60, 190, c.width-120, 90);
-
-      ctx.fillStyle = "rgba(244,244,246,0.62)";
-      ctx.font = "700 40px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
+      ctx.fillStyle="rgba(244,244,246,0.62)";
+      ctx.font="700 40px ui-sans-serif, system-ui";
       ctx.fillText((sublabel||"").toUpperCase(), 60, 540);
-
-      ctx.fillStyle = "rgba(244,244,246,0.42)";
-      ctx.font = "700 28px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
-      ctx.fillText("reinis.kalnaellis.com", 60, c.height-90);
 
       const tex = new THREE.CanvasTexture(c);
       tex.colorSpace = THREE.SRGBColorSpace;
@@ -653,408 +534,129 @@
       for(let n=0;n<words.length;n++){
         const test = line + words[n] + " ";
         const w = ctx.measureText(test).width;
-        if(w > maxWidth && n > 0){
+        if(w > maxWidth && n>0){
           ctx.fillText(line, x, y);
           line = words[n] + " ";
           y += lineHeight;
-        }else{
-          line = test;
-        }
+        }else line = test;
       }
       ctx.fillText(line, x, y);
     }
 
-    function accentForCategory(cat){
-      return {
-        "Film":"#7dd3fc",
-        "Photography":"#facc15",
-        "Music":"#a7f3d0",
-        "Digital":"#c4b5fd",
-        "Events":"#fda4af"
-      }[cat] || "#ffffff";
-    }
-
     function buildPoster(item, pos, rotY){
-      const group = new THREE.Group();
-      group.position.copy(pos);
-      group.rotation.y = rotY;
+      const g = new THREE.Group();
+      g.position.copy(pos);
+      g.rotation.y = rotY;
 
-      // Frame
-      const frameGeo = new THREE.PlaneGeometry(1.15, 1.72);
-      const frameMat = new THREE.MeshStandardMaterial({
-        color: 0x0a0a10,
-        roughness: 0.6,
-        metalness: 0.1
-      });
-      const frame = new THREE.Mesh(frameGeo, frameMat);
-      group.add(frame);
+      const frame = new THREE.Mesh(
+        new THREE.PlaneGeometry(1.18, 1.76),
+        new THREE.MeshStandardMaterial({ color:0x0b0b12, roughness:0.55, metalness:0.12 })
+      );
+      g.add(frame);
 
-      // Poster surface slightly forward
-      const posterGeo = new THREE.PlaneGeometry(1.05, 1.60);
-      const posterMat = new THREE.MeshStandardMaterial({
-        color: 0xffffff,
-        roughness: 0.95,
-        metalness: 0.0,
-        emissive: new THREE.Color(0x000000),
-        emissiveIntensity: 0.0
-      });
-      const poster = new THREE.Mesh(posterGeo, posterMat);
-      poster.position.z = 0.012;
-      poster.userData = { item };
-      group.add(poster);
+      const surface = new THREE.Mesh(
+        new THREE.PlaneGeometry(1.08, 1.62),
+        new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.92, metalness:0.0, emissive:new THREE.Color(0x000000), emissiveIntensity:0 })
+      );
+      surface.position.z = 0.012;
+      surface.userData.item = item;
+      g.add(surface);
 
-      // Small label plaque
-      const plaqueGeo = new THREE.PlaneGeometry(1.10, 0.18);
-      const plaqueTex = makePlaqueTexture(item.title, item.category);
-      const plaqueMat = new THREE.MeshBasicMaterial({ map: plaqueTex, transparent:true, opacity: 0.95 });
-      const plaque = new THREE.Mesh(plaqueGeo, plaqueMat);
-      plaque.position.set(0, -0.98, 0.012);
-      group.add(plaque);
+      // Small light aimed at poster
+      const spot = new THREE.SpotLight(0xffffff, 0.85, 6.0, Math.PI/5, 0.55, 1.7);
+      spot.position.set(0, 1.7, 1.2);
+      spot.target = surface;
+      g.add(spot);
+      g.add(spot.target);
 
-      // Spotlight "gallery" feel
-      const spot = new THREE.SpotLight(0xffffff, 0.7, 5.5, Math.PI/5, 0.55, 1.6);
-      spot.position.set(0, 1.6, 1.0);
-      spot.target = poster;
-      group.add(spot);
-      group.add(spot.target);
-
-      // Gentle breathing animation
       if(window.gsap){
-        gsap.to(group.position, { y: group.position.y + 0.03, duration: 2.6 + Math.random(), yoyo:true, repeat:-1, ease:"sine.inOut" });
+        gsap.to(g.position, { y: g.position.y + 0.03, duration: 2.5 + Math.random(), yoyo:true, repeat:-1, ease:"sine.inOut" });
       }
 
-      // Texture: load image or fallback placeholder
       const accent = accentForCategory(item.category);
       const placeholder = makePlaceholderTexture(item.title, item.subtitle || item.category, accent);
 
       function applyTexture(tex){
         tex.colorSpace = THREE.SRGBColorSpace;
         tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-        poster.material.map = tex;
-        poster.material.needsUpdate = true;
+        surface.material.map = tex;
+        surface.material.needsUpdate = true;
       }
 
-      // If YouTube and no image path, use YT thumb
       let src = item.image || "";
       if(item.kind === "youtube" && (!src || src.trim()==="")){
         const id = item.youtubeId;
-        if(id && id !== "PASTE_YOUTUBE_ID_HERE"){
-          src = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
-        }
+        if(id && id !== "PASTE_YOUTUBE_ID_HERE") src = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
       }
-
       if(src){
-        loader.load(
-          src,
-          (tex)=> applyTexture(tex),
-          undefined,
-          ()=> applyTexture(placeholder)
-        );
+        texLoader.load(src, applyTexture, undefined, ()=>applyTexture(placeholder));
       }else{
         applyTexture(placeholder);
       }
 
-      return { group, poster };
+      return { group:g, mesh:surface, item };
     }
 
-    function makePlaqueTexture(title, category){
-      const c = document.createElement("canvas");
-      c.width = 1024; c.height = 160;
-      const ctx = c.getContext("2d");
-      ctx.clearRect(0,0,c.width,c.height);
-
-      // background
-      ctx.fillStyle = "rgba(0,0,0,0.45)";
-      roundRect(ctx, 20, 20, c.width-40, c.height-40, 28);
-      ctx.fill();
-
-      // border
-      ctx.strokeStyle = "rgba(255,255,255,0.18)";
-      ctx.lineWidth = 4;
-      roundRect(ctx, 20, 20, c.width-40, c.height-40, 28);
-      ctx.stroke();
-
-      // accent
-      ctx.fillStyle = accentForCategory(category);
-      ctx.globalAlpha = 0.18;
-      ctx.fillRect(48, 52, 14, 56);
-      ctx.globalAlpha = 1;
-
-      // text
-      ctx.fillStyle = "rgba(244,244,246,0.92)";
-      ctx.font = "900 46px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial";
-      ctx.textBaseline = "middle";
-      ctx.fillText((title||"Untitled"), 78, 80);
-
-      ctx.fillStyle = "rgba(244,244,246,0.62)";
-      ctx.font = "800 24px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
-      ctx.fillText((category||"").toUpperCase(), c.width-240, 80);
-
-      const tex = new THREE.CanvasTexture(c);
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.needsUpdate = true;
-      return tex;
-    }
-
-    function roundRect(ctx, x, y, w, h, r){
-      ctx.beginPath();
-      ctx.moveTo(x+r, y);
-      ctx.arcTo(x+w, y, x+w, y+h, r);
-      ctx.arcTo(x+w, y+h, x, y+h, r);
-      ctx.arcTo(x, y+h, x, y, r);
-      ctx.arcTo(x, y, x+w, y, r);
-      ctx.closePath();
-    }
-
-    // Place posters on walls (simple layout)
-    let posters = []; // [{group, poster, item}]
     function rebuildPosters(){
       posterGroup.clear();
       posters = [];
 
       const items = GALLERY.filter(g => activeCategory === "All" ? true : g.category === activeCategory);
 
-      // wall positions
-      const wallZ = ROOM.d/2 - 0.08;     // back wall inner side
-      const wallZ2 = -ROOM.d/2 + 0.08;   // front wall inner side
-      const wallX = ROOM.w/2 - 0.08;
-      const wallX2 = -ROOM.w/2 + 0.08;
+      // Correct wall positions
+      const backZ  = -ROOM.d/2 + 0.10;
+      const frontZ =  ROOM.d/2 - 0.10;
+      const rightX =  ROOM.w/2 - 0.10;
+      const leftX  = -ROOM.w/2 + 0.10;
 
-      // Distribute around the room
       const slots = [];
-      // back wall
-      for(let i=0;i<3;i++) slots.push({ pos: new THREE.Vector3(-3.2 + i*3.2, 1.55, -wallZ2), rot: 0 });
-      // right wall
-      for(let i=0;i<3;i++) slots.push({ pos: new THREE.Vector3(wallX, 1.55, -3.2 + i*3.2), rot: -Math.PI/2 });
-      // front wall
-      for(let i=0;i<3;i++) slots.push({ pos: new THREE.Vector3(-3.2 + i*3.2, 1.55, wallZ), rot: Math.PI });
-      // left wall
-      for(let i=0;i<3;i++) slots.push({ pos: new THREE.Vector3(-wallX2, 1.55, -3.2 + i*3.2), rot: Math.PI/2 });
+      for(let i=0;i<3;i++) slots.push({ pos:new THREE.Vector3(-3.2 + i*3.2, 1.55, backZ),  rot: 0 });
+      for(let i=0;i<3;i++) slots.push({ pos:new THREE.Vector3(rightX, 1.55, -3.2 + i*3.2), rot: -Math.PI/2 });
+      for(let i=0;i<3;i++) slots.push({ pos:new THREE.Vector3(-3.2 + i*3.2, 1.55, frontZ), rot: Math.PI });
+      for(let i=0;i<3;i++) slots.push({ pos:new THREE.Vector3(leftX, 1.55, -3.2 + i*3.2),  rot: Math.PI/2 });
 
-      items.forEach((item, i)=>{
+      items.forEach((it, i)=>{
         const slot = slots[i % slots.length];
-        const built = buildPoster(item, slot.pos, slot.rot);
-        posterGroup.add(built.group);
-        posters.push({ group: built.group, poster: built.poster, item });
+        const p = buildPoster(it, slot.pos, slot.rot);
+        posterGroup.add(p.group);
+        posters.push(p);
       });
 
-      // Rebuild audio emitters
-      audioEngine.rebuild(posters);
+      log(`OK: WebGL running\nPosters: ${posters.length}\nAssets root: ./assets/\n\nIf your own images still don't show:\n- GitHub Pages is CASE-SENSITIVE\n- Use ./assets/... not /assets/...\n- Check DevTools → Network (404s)\n`);
     }
     rebuildPosters();
 
-    // ---------- Spatial audio engine ----------
-    class SpatialAudioEngine{
-      constructor(){
-        this.ctx = null;
-        this.listener = null;
-        this.ready = false;
-        this.sources = new Map(); // id -> {panner, gain, node}
-      }
-
-      async start(){
-        if(this.ready) return true;
-        try{
-          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-          await this.ctx.resume();
-          this.listener = this.ctx.listener;
-
-          this.master = this.ctx.createGain();
-          this.master.gain.value = 0.9;
-          this.master.connect(this.ctx.destination);
-
-          this.ready = true;
-          return true;
-        }catch(e){
-          console.warn("Audio start failed:", e);
-          this.ready = false;
-          return false;
-        }
-      }
-
-      stopAll(){
-        for(const [,s] of this.sources){
-          try{ s.node?.stop?.(); }catch{}
-        }
-        this.sources.clear();
-      }
-
-      async rebuild(posters){
-        if(!this.ready) return;
-        this.stopAll();
-        for(const p of posters){
-          const item = p.item;
-          if(item.kind !== "audio") continue;
-          await this._createEmitter(item, p.group);
-        }
-      }
-
-      async _createEmitter(item, group){
-        const panner = this.ctx.createPanner();
-        panner.panningModel = "HRTF";
-        panner.distanceModel = "inverse";
-        panner.refDistance = 1.4;
-        panner.maxDistance = 10;
-        panner.rolloffFactor = 1.2;
-
-        const gain = this.ctx.createGain();
-        gain.gain.value = 0.0;
-        panner.connect(gain);
-        gain.connect(this.master);
-
-        let node = null;
-
-        if(item.audio){
-          try{
-            const res = await fetch(item.audio);
-            const arr = await res.arrayBuffer();
-            const buf = await this.ctx.decodeAudioData(arr);
-            const src = this.ctx.createBufferSource();
-            src.buffer = buf;
-            src.loop = true;
-
-            const lp = this.ctx.createBiquadFilter();
-            lp.type = "lowpass";
-            lp.frequency.value = 1400;
-
-            src.connect(lp);
-            lp.connect(panner);
-
-            src.start();
-            node = src;
-          }catch(e){
-            console.warn("Audio file failed, using oscillator:", item.audio, e);
-            node = this._fallbackOsc(panner);
-          }
-        }else{
-          node = this._fallbackOsc(panner);
-        }
-
-        this.sources.set(item.id, { item, group, panner, gain, node });
-      }
-
-      _fallbackOsc(target){
-        const osc = this.ctx.createOscillator();
-        osc.type = "triangle";
-        osc.frequency.value = 220 + Math.random()*120;
-
-        const lfo = this.ctx.createOscillator();
-        lfo.type = "sine";
-        lfo.frequency.value = 0.18 + Math.random()*0.25;
-
-        const lfoGain = this.ctx.createGain();
-        lfoGain.gain.value = 30;
-
-        lfo.connect(lfoGain);
-        lfoGain.connect(osc.frequency);
-
-        const g = this.ctx.createGain();
-        g.gain.value = 0.12;
-
-        osc.connect(g);
-        g.connect(target);
-
-        lfo.start();
-        osc.start();
-        return osc;
-      }
-
-      updateListener(cam){
-        if(!this.ready) return;
-        const p = cam.position;
-        this.listener.positionX.value = p.x;
-        this.listener.positionY.value = p.y;
-        this.listener.positionZ.value = p.z;
-
-        const fwd = new THREE.Vector3(0,0,-1).applyQuaternion(cam.quaternion);
-        const up  = new THREE.Vector3(0,1,0).applyQuaternion(cam.quaternion);
-
-        this.listener.forwardX.value = fwd.x;
-        this.listener.forwardY.value = fwd.y;
-        this.listener.forwardZ.value = fwd.z;
-        this.listener.upX.value = up.x;
-        this.listener.upY.value = up.y;
-        this.listener.upZ.value = up.z;
-      }
-
-      updateEmitters(cam){
-        if(!this.ready) return;
-        for(const [,s] of this.sources){
-          const wp = new THREE.Vector3();
-          s.group.getWorldPosition(wp);
-
-          s.panner.positionX.value = wp.x;
-          s.panner.positionY.value = wp.y;
-          s.panner.positionZ.value = wp.z;
-
-          const d = wp.distanceTo(cam.position);
-          const v = Math.max(0, 1.0 - (d/4.0));
-          s.gain.gain.value = v*v*0.85;
-        }
-      }
-    }
-
-    const audioEngine = new SpatialAudioEngine();
-
-    audioBtn.addEventListener("click", async ()=>{
-      const ok = await audioEngine.start();
-      audioBtn.textContent = ok ? "Audio on" : "Audio blocked";
-      if(ok) audioEngine.rebuild(posters);
-    });
-
-    // ---------- Interaction (raycast posters) ----------
-    let hovered = null;
-
+    // Raycast hover + interact
     function findHit(){
       raycaster.setFromCamera(pointer, camera);
-      const meshes = posters.map(p => p.poster);
+      const meshes = posters.map(p=>p.mesh);
       const hits = raycaster.intersectObjects(meshes, false);
       if(hits.length){
         const mesh = hits[0].object;
-        const item = mesh.userData.item;
-        return { mesh, item, point: hits[0].point };
+        return { mesh, item: mesh.userData.item };
       }
       return null;
     }
 
     function applyHover(hit){
-      if(hovered && (!hit || hovered.mesh !== hit.mesh)){
+      if(hovered && (!hit || hit.mesh !== hovered.mesh)){
         hovered.mesh.material.emissive.setHex(0x000000);
-        hovered.mesh.material.emissiveIntensity = 0.0;
+        hovered.mesh.material.emissiveIntensity = 0;
         hovered = null;
       }
-      if(hit && (!hovered || hovered.mesh !== hit.mesh)){
+      if(hit && (!hovered || hit.mesh !== hovered.mesh)){
         hovered = hit;
         hit.mesh.material.emissive.setHex(0xffffff);
-        hit.mesh.material.emissiveIntensity = 0.18;
+        hit.mesh.material.emissiveIntensity = 0.22;
       }
     }
 
     function tryInteract(){
       if(!hovered) return;
-      selectedItem = hovered.item;
-      openModal(selectedItem);
+      openModal(hovered.item);
     }
 
-    // Click / tap to open
-    renderer.domElement.addEventListener("click", (e)=>{
-      if(isMobile()){
-        // tap location ray
-        const r = canvas.getBoundingClientRect();
-        pointer.set(
-          ((e.clientX - r.left) / r.width) * 2 - 1,
-          -(((e.clientY - r.top) / r.height) * 2 - 1)
-        );
-      }else{
-        pointer.set(0,0);
-      }
-      const hit = findHit();
-      if(hit){
-        openModal(hit.item);
-      }
-    });
-
-    function updateCenterHover(){
+    function updateHover(){
       if(isMobile()){
         selEl.textContent = "tap posters";
         distEl.textContent = "–";
@@ -1074,23 +676,167 @@
       }
     }
 
-    // ---------- Movement ----------
+    renderer.domElement.addEventListener("click", (e)=>{
+      if(isMobile()){
+        const r = canvas.getBoundingClientRect();
+        pointer.set(((e.clientX - r.left)/r.width)*2 - 1, -(((e.clientY - r.top)/r.height)*2 - 1));
+      }else{
+        pointer.set(0,0);
+      }
+      const hit = findHit();
+      if(hit) openModal(hit.item);
+    });
+
+    // Spatial audio
+    class SpatialAudioEngine{
+      constructor(){ this.ctx=null; this.master=null; this.ready=false; this.sources=new Map(); }
+      async start(){
+        if(this.ready) return true;
+        try{
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+          await this.ctx.resume();
+          this.master = this.ctx.createGain();
+          this.master.gain.value = 0.9;
+          this.master.connect(this.ctx.destination);
+          this.ready = true;
+          return true;
+        }catch(e){
+          log(statusEl.textContent + "\nAudio start failed: " + e);
+          return false;
+        }
+      }
+      stopAll(){ for(const [,s] of this.sources){ try{s.node?.stop?.()}catch{} } this.sources.clear(); }
+      async rebuild(){
+        if(!this.ready) return;
+        this.stopAll();
+        for(const p of posters){
+          const item = p.item;
+          if(item.kind !== "audio") continue;
+          await this._createEmitter(item, p.group);
+        }
+      }
+      async _createEmitter(item, group){
+        const panner = this.ctx.createPanner();
+        panner.panningModel = "HRTF";
+        panner.distanceModel = "inverse";
+        panner.refDistance = 1.4;
+        panner.maxDistance = 10;
+        panner.rolloffFactor = 1.2;
+
+        const gain = this.ctx.createGain();
+        gain.gain.value = 0.0;
+        panner.connect(gain);
+        gain.connect(this.master);
+
+        let node=null;
+        if(item.audio){
+          try{
+            const res = await fetch(item.audio);
+            const arr = await res.arrayBuffer();
+            const buf = await this.ctx.decodeAudioData(arr);
+            const src = this.ctx.createBufferSource();
+            src.buffer = buf;
+            src.loop = true;
+            src.connect(panner);
+            src.start();
+            node = src;
+          }catch(e){
+            node = this._fallbackOsc(panner);
+          }
+        }else{
+          node = this._fallbackOsc(panner);
+        }
+        this.sources.set(item.id, { item, group, panner, gain, node });
+      }
+      _fallbackOsc(target){
+        const osc = this.ctx.createOscillator();
+        osc.type="triangle";
+        osc.frequency.value = 220 + Math.random()*140;
+        const g = this.ctx.createGain();
+        g.gain.value = 0.08;
+        osc.connect(g); g.connect(target);
+        osc.start();
+        return osc;
+      }
+      update(cam){
+        if(!this.ready) return;
+        const L = this.ctx.listener;
+        const p = cam.position;
+        if(L.positionX){
+          L.positionX.value = p.x; L.positionY.value = p.y; L.positionZ.value = p.z;
+          const fwd = new THREE.Vector3(0,0,-1).applyQuaternion(cam.quaternion);
+          const up  = new THREE.Vector3(0,1,0).applyQuaternion(cam.quaternion);
+          L.forwardX.value=fwd.x; L.forwardY.value=fwd.y; L.forwardZ.value=fwd.z;
+          L.upX.value=up.x; L.upY.value=up.y; L.upZ.value=up.z;
+        }
+        for(const [,s] of this.sources){
+          const wp = new THREE.Vector3();
+          s.group.getWorldPosition(wp);
+          s.panner.positionX.value = wp.x;
+          s.panner.positionY.value = wp.y;
+          s.panner.positionZ.value = wp.z;
+          const d = wp.distanceTo(cam.position);
+          const v = Math.max(0, 1 - d/4);
+          s.gain.gain.value = v*v*0.9;
+        }
+      }
+    }
+    const audioEngine = new SpatialAudioEngine();
+
+    audioBtn.addEventListener("click", async ()=>{
+      const ok = await audioEngine.start();
+      if(ok){
+        audioBtn.textContent = "Audio on";
+        audioEngine.rebuild();
+      }else{
+        audioBtn.textContent = "Audio blocked";
+      }
+    });
+
+    fsBtn.addEventListener("click", async ()=>{
+      try{
+        if(!document.fullscreenElement) await document.documentElement.requestFullscreen();
+        else await document.exitFullscreen();
+      }catch{}
+    });
+
+    helpBtn.addEventListener("click", ()=>{
+      openModal({ title:"Help", category:"Help", kind:"info", subtitle:"If it’s black", note:"" });
+      mBody.innerHTML = `
+        <p><b>Common causes of “black screen with UI”:</b></p>
+        <ol>
+          <li><b>three.js blocked</b> (CSP/network). The status box will say so.</li>
+          <li><b>WebGL disabled</b> (browser flags / GPU driver). Try another browser/device.</li>
+          <li><b>Images not loading</b> because GitHub Pages is <b>case-sensitive</b>. Check DevTools → Network for 404.</li>
+        </ol>
+        <div class="mediaBox">
+          <div class="mono" style="font-size:12px; color:rgba(244,244,246,.85)">
+            <b>Paths should look like:</b><br/>
+            <code>./assets/posters/thelma.jpg</code><br/>
+            <code>./assets/photos/photo01.jpg</code><br/>
+            <code>./assets/audio/track01.mp3</code>
+          </div>
+        </div>
+        <div class="hr"></div>
+        <p><b>Controls:</b> Desktop: click Enter room → WASD. Press <b>E</b> to open highlighted poster.<br/>Mobile: drag to look, joystick to move, tap posters.</p>
+      `;
+    });
+
+    // Movement
     const v = new THREE.Vector3();
     const forward = new THREE.Vector3();
     const right = new THREE.Vector3();
 
     function move(dt){
+      if(!walking) return;
       const base = keys.shift ? 4.4 : 2.9;
       const f = (keys.w?1:0) - (keys.s?1:0);
       const s = (keys.d?1:0) - (keys.a?1:0);
-
       const jf = -moveStick.y;
       const js = moveStick.x;
 
       const mf = THREE.MathUtils.clamp(f + jf, -1, 1);
       const ms = THREE.MathUtils.clamp(s + js, -1, 1);
-
-      if(!walking) return;
 
       const yaw = camera.rotation.y;
       forward.set(-Math.sin(yaw), 0, -Math.cos(yaw));
@@ -1101,47 +847,11 @@
       v.addScaledVector(right, ms);
       if(v.lengthSq() > 0.0001) v.normalize();
 
-      camera.position.addScaledVector(v, base * dt);
+      camera.position.addScaledVector(v, base*dt);
       clampToRoom();
     }
 
-    // ---------- Fullscreen ----------
-    fsBtn.addEventListener("click", async ()=>{
-      try{
-        if(!document.fullscreenElement){
-          await document.documentElement.requestFullscreen();
-        }else{
-          await document.exitFullscreen();
-        }
-      }catch{}
-    });
-
-    // ---------- Help ----------
-    helpBtn.addEventListener("click", ()=>{
-      openModal({ title:"How this gallery works", category:"Help", kind:"info", subtitle:"10×10m room · posters as media nodes", note:"" });
-      mBody.innerHTML = `
-        <p>
-          This is a single-file WebGL gallery. Posters live on the walls. Each poster can open:
-          <b>an image</b>, <b>a YouTube video</b>, or <b>an audio track</b>.
-        </p>
-        <div class="mediaBox">
-          <div class="mono" style="font-size:12px; color:rgba(244,244,246,.8)">
-            <b>Desktop</b>: Click canvas → mouse look. WASD move. Shift sprint. Press <b>E</b> to open highlighted poster.<br/><br/>
-            <b>Mobile</b>: Drag to look. Use joystick to move. Tap posters to open.
-          </div>
-        </div>
-        <div class="hr"></div>
-        <p><b>Add your media:</b> Put files in <code>/assets/</code> and update the <code>GALLERY</code> array in the script.</p>
-        <ul>
-          <li>Images: <code>kind: "image"</code> + <code>image: "assets/..."</code></li>
-          <li>YouTube: <code>kind: "youtube"</code> + <code>youtubeId: "..."</code></li>
-          <li>Audio: <code>kind: "audio"</code> + <code>audio: "assets/audio/track.mp3"</code></li>
-        </ul>
-        <p style="color:rgba(244,244,246,.7)">Audio needs a user click to start because browsers are protective to the point of comedy.</p>
-      `;
-    });
-
-    // ---------- Resize ----------
+    // Resize
     addEventListener("resize", ()=>{
       renderer.setSize(innerWidth, innerHeight);
       camera.aspect = innerWidth/innerHeight;
@@ -1149,44 +859,53 @@
       updateJoystickVisibility();
     });
 
-    // safe rebuild
-    function rebuildPostersSafe(){
-      rebuildPosters();
-      clampToRoom();
+    // Asset sanity check (detects 404s)
+    function sanityCheckAssets(){
+      const items = GALLERY.slice(0, 6);
+      const missing = [];
+      const checks = [];
+      for(const it of items){
+        if(it.kind === "image" && it.image){
+          checks.push(checkImage(it.image).catch(()=>missing.push(it.image)));
+        }
+        if(it.kind === "audio" && it.audio){
+          checks.push(fetch(it.audio, { cache:"no-store" }).then(r=>{ if(!r.ok) missing.push(it.audio); }).catch(()=>missing.push(it.audio)));
+        }
+      }
+      Promise.allSettled(checks).then(()=>{
+        if(missing.length){
+          log(statusEl.textContent + "\nMissing assets detected (404):\n- " + missing.join("\n- ") + "\n\nFix: Check case-sensitive filenames + folder paths.");
+        }
+      });
     }
+    function checkImage(url){
+      return new Promise((resolve, reject)=>{
+        const img = new Image();
+        img.onload = ()=>resolve(true);
+        img.onerror = ()=>reject(new Error("missing"));
+        img.src = url + (url.includes("?") ? "&" : "?") + "v=" + Date.now();
+      });
+    }
+    sanityCheckAssets();
 
-    // ---------- Render loop + FPS ----------
+    // Render loop
     let last = performance.now();
-    let acc = 0, frames = 0;
-
     function tick(now){
-      requestAnimationFrame(tick);
-      const dt = Math.min(0.033, (now - last) / 1000);
+      const dt = Math.min(0.033, (now-last)/1000);
       last = now;
-
-      acc += dt; frames++;
-      if(acc > 0.6){
-        fpsEl.textContent = Math.round(frames/acc).toString();
-        acc = 0; frames = 0;
-      }
-
       move(dt);
-
-      // Hover highlight
-      updateCenterHover();
-
-      // subtle bob
-      if(walking){
-        camera.position.y = 1.6 + Math.sin(now*0.006) * 0.02;
-      }
-
-      audioEngine.updateListener(camera);
-      audioEngine.updateEmitters(camera);
-
+      updateHover();
+      if(walking) camera.position.y = 1.6 + Math.sin(now*0.006)*0.02;
+      audioEngine.update(camera);
       renderer.render(scene, camera);
+      requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
 
+    // Initial status
+    log("OK: three.js loaded\nOK: WebGL renderer created\n\nIf posters are placeholders: your image paths are wrong or 404.\nOpen Help for the brutal truth.");
+
+  })();
   </script>
 </body>
 </html>
