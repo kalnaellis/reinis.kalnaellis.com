@@ -2,910 +2,987 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="color-scheme" content="dark" />
-  <title>Reinis Kalnaellis · WebGL Gallery Room</title>
-  <meta name="description" content="A 10×10m WebGL gallery room with augmented posters, spatial sound, and interactive media (images, music, YouTube)." />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Reinis Kalnaellis • WebGL Gallery Room</title>
   <style>
     :root{
-      --bg:#050508;
-      --fg:#f4f4f6;
-      --muted:rgba(244,244,246,.72);
-      --muted2:rgba(244,244,246,.52);
-      --stroke:rgba(255,255,255,.14);
-      --shadow: 0 18px 70px rgba(0,0,0,.55);
-      --r: 22px;
+      --bg:#070710;
+      --panel:rgba(18,18,26,.72);
+      --panel2:rgba(18,18,26,.52);
+      --ink:rgba(244,244,246,.92);
+      --muted:rgba(244,244,246,.62);
+      --hair:rgba(244,244,246,.14);
+      --ok:rgba(120,255,180,.9);
+      --warn:rgba(255,190,120,.9);
+      --bad:rgba(255,120,140,.9);
+      --accent:rgba(240,240,255,.92);
     }
-    *{box-sizing:border-box}
-    html,body{height:100%; margin:0; background:var(--bg); color:var(--fg); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; overflow:hidden;}
-    #c{position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none;}
-    #ui{position:fixed; inset:0; pointer-events:none; z-index:20;}
-    .top{
-      position:absolute; left:12px; top:12px;
-      width:min(440px, calc(100vw - 24px));
-      pointer-events:auto;
-      display:flex; flex-direction:column; gap:10px;
+    html,body{height:100%; margin:0; background:var(--bg); color:var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; overflow:hidden;}
+    #wrap{position:fixed; inset:0; overflow:hidden;}
+    canvas{display:block; width:100vw; height:100vh; touch-action:none;}
+    /* UI overlay */
+    #ui{position:fixed; inset:0; pointer-events:none;}
+    .panel{pointer-events:auto; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      background:var(--panel); border:1px solid var(--hair); border-radius:16px; box-shadow: 0 18px 60px rgba(0,0,0,.45);
     }
-    .card{
-      background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
-      border:1px solid var(--stroke);
-      border-radius: var(--r);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(12px);
-      padding: 14px;
+    #topbar{position:fixed; left:16px; right:16px; top:14px; display:flex; gap:12px; align-items:center; justify-content:space-between;}
+    #brand{padding:12px 14px; display:flex; align-items:baseline; gap:10px;}
+    #brand b{font-size:14px; letter-spacing:.12em; text-transform:uppercase;}
+    #brand small{color:var(--muted); font-size:12px;}
+    #nav{padding:10px 12px; display:flex; gap:10px; align-items:center;}
+    .navlink{padding:8px 10px; border-radius:12px; border:1px solid transparent; color:var(--muted); font-size:12px; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; user-select:none;}
+    .navlink:hover{border-color:var(--hair); color:var(--ink);}
+    #leftbar{position:fixed; left:16px; top:78px; width:min(340px, calc(100vw - 32px)); display:grid; gap:12px;}
+    #status{padding:12px 14px; font-size:12px; color:var(--muted); white-space:pre-wrap; line-height:1.3;}
+    #actions{padding:10px 12px; display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
+    .btn{pointer-events:auto; cursor:pointer; user-select:none; padding:10px 12px; border-radius:14px;
+      border:1px solid var(--hair); background:rgba(255,255,255,.05); color:var(--ink); font-size:12px; letter-spacing:.04em;
     }
-    h1{
-      margin:0;
-      font-size: 13px;
-      letter-spacing:.14em;
-      text-transform:uppercase;
-      font-weight:900;
+    .btn:hover{background:rgba(255,255,255,.08);}
+    .btn.primary{border-color:rgba(244,244,246,.22); background:rgba(244,244,246,.09);}
+    .btn.good{border-color:rgba(120,255,180,.22);}
+    .btn.warn{border-color:rgba(255,190,120,.22);}
+    .btn.bad{border-color:rgba(255,120,140,.22);}
+    #filters{padding:12px 14px;}
+    #filters h3{margin:0 0 10px 0; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);}
+    .chiprow{display:flex; flex-wrap:wrap; gap:8px;}
+    .chip{pointer-events:auto; cursor:pointer; user-select:none; padding:8px 10px; border-radius:999px; border:1px solid var(--hair);
+      background:rgba(255,255,255,.04); font-size:12px; color:var(--muted);
     }
-    .sub{margin-top:8px; color:var(--muted); font-size:13px; line-height:1.35}
-    .row{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
-    .btn{
-      appearance:none; border:none; cursor:pointer;
-      padding: 10px 12px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.10);
-      border:1px solid rgba(255,255,255,.18);
-      color:var(--fg);
-      font-weight:800;
-      letter-spacing:.10em;
-      text-transform:uppercase;
-      font-size: 11px;
-      user-select:none;
+    .chip.active{background:rgba(244,244,246,.12); color:var(--ink); border-color:rgba(244,244,246,.22);}
+    #hint{position:fixed; left:16px; bottom:16px; padding:12px 14px; max-width:min(620px, calc(100vw - 32px));}
+    #hint b{font-size:12px; letter-spacing:.12em; text-transform:uppercase;}
+    #hint p{margin:8px 0 0 0; color:var(--muted); font-size:12px; line-height:1.45;}
+    #tooltip{position:fixed; left:0; top:0; transform:translate(-9999px,-9999px); padding:10px 12px; border-radius:14px; max-width:min(320px, calc(100vw - 30px));
+      background:rgba(10,10,18,.84); border:1px solid var(--hair); color:var(--ink); font-size:12px; pointer-events:none;
     }
-    .btn:hover{background:rgba(255,255,255,.14)}
-    .btn.primary{background:rgba(255,255,255,.18); border-color:rgba(255,255,255,.26)}
-    .chipRow{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
-    .chip{
-      cursor:pointer;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.16);
-      background:rgba(0,0,0,.18);
-      padding: 8px 10px;
-      font-size:11px;
-      letter-spacing:.10em;
-      text-transform:uppercase;
-      color:rgba(244,244,246,.86);
-      user-select:none;
+    #tooltip .sub{color:var(--muted); margin-top:4px; font-size:11px;}
+    /* Traffic sign style banner */
+    #sign{position:fixed; right:16px; bottom:16px; padding:12px 14px; display:flex; gap:10px; align-items:center;}
+    #sign .plate{
+      border-radius:14px; border:1px solid rgba(244,244,246,.22);
+      background:linear-gradient(180deg, rgba(244,244,246,.12), rgba(244,244,246,.06));
+      padding:10px 12px; min-width:240px;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.12);
     }
-    .chip.active{background:rgba(255,255,255,.10); border-color:rgba(255,255,255,.26)}
-    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
-    .kv{
-      display:flex; justify-content:space-between; gap:10px;
-      border-top:1px solid rgba(255,255,255,.10);
-      margin-top:10px; padding-top:10px;
-      color:rgba(244,244,246,.86);
-      font-size:12px;
-    }
-    #status{
-      margin-top:10px;
-      padding:10px 12px;
-      border-radius: 16px;
-      background: rgba(0,0,0,.22);
-      border:1px solid rgba(255,255,255,.12);
-      color: rgba(244,244,246,.78);
-      font-size: 12px;
-      line-height: 1.35;
-      white-space: pre-wrap;
-    }
-
-    /* Mobile joystick */
-    #stick{
-      position:absolute; right:12px; bottom:12px;
-      width:120px; height:120px;
-      pointer-events:auto;
-      display:none;
-      touch-action:none;
-      z-index:25;
-    }
-    .ring{
-      width:100%; height:100%;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.18);
-      background: rgba(255,255,255,.05);
-      backdrop-filter: blur(10px);
-      box-shadow: var(--shadow);
-      position:relative;
-    }
-    .knob{
-      width:46px; height:46px;
-      border-radius:999px;
-      background: rgba(255,255,255,.14);
-      border:1px solid rgba(255,255,255,.22);
-      position:absolute;
-      left:50%; top:50%;
-      transform: translate(-50%,-50%);
-    }
-
+    #sign .plate b{font-size:12px; letter-spacing:.14em; text-transform:uppercase;}
+    #sign .plate div{margin-top:6px; color:var(--muted); font-size:12px;}
+    #sign .dot{width:10px; height:10px; border-radius:999px; background:rgba(244,244,246,.22);}
     /* Modal */
-    #backdrop{
-      position:fixed; inset:0;
-      background: rgba(0,0,0,.72);
-      display:none;
-      align-items:center; justify-content:center;
-      padding: 16px;
-      z-index:60;
-      pointer-events:auto;
-    }
-    #modal{
-      width:min(980px, 100%);
-      max-height:min(86vh, 780px);
-      overflow:auto;
-      border-radius: 26px;
-      border:1px solid rgba(255,255,255,.18);
-      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
-      backdrop-filter: blur(14px);
-      box-shadow: 0 30px 90px rgba(0,0,0,.7);
-    }
-    .mTop{
-      display:flex; justify-content:space-between; align-items:flex-start; gap:14px;
-      padding: 16px 16px 10px;
-      border-bottom:1px solid rgba(255,255,255,.10);
-    }
-    .mTop h2{margin:0; font-size:16px; letter-spacing:.02em}
-    .mSub{margin-top:4px; color:var(--muted2); font-size:12px; letter-spacing:.10em; text-transform:uppercase}
-    .x{
-      border:none; cursor:pointer;
-      background: rgba(255,255,255,.08);
-      border:1px solid rgba(255,255,255,.16);
-      color:var(--fg);
-      width:38px; height:38px;
-      border-radius: 14px;
-      font-weight:900;
-    }
-    .x:hover{background:rgba(255,255,255,.12)}
-    .mBody{padding: 14px 16px 16px; color:rgba(244,244,246,.84); line-height:1.6; font-size:14px;}
-    .mediaBox{
-      background: rgba(0,0,0,.22);
-      border:1px solid rgba(255,255,255,.12);
-      border-radius: 18px;
-      padding: 12px;
-      overflow:hidden;
-      margin-top: 10px;
-    }
-    .mediaBox img{width:100%; height:auto; display:block; border-radius: 14px; border:1px solid rgba(255,255,255,.10)}
-    .mediaBox iframe{width:100%; aspect-ratio:16/9; border:0; border-radius: 14px; border:1px solid rgba(255,255,255,.10)}
-    .mediaBox audio{width:100%}
-    code{background:rgba(0,0,0,.22); border:1px solid rgba(255,255,255,.12); padding:2px 6px; border-radius:10px}
-    .hr{height:1px; background:rgba(255,255,255,.10); margin: 12px 0}
-
-    @media (max-width: 520px){
-      h1{font-size:12px}
-      .btn{padding:9px 11px}
+    #modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; padding:18px; background:rgba(0,0,0,.55); pointer-events:auto;}
+    #modalCard{width:min(900px, 100%); max-height:min(88vh, 900px); overflow:auto; padding:14px; border-radius:18px;}
+    #modalHead{display:flex; gap:12px; align-items:flex-start; justify-content:space-between; padding:8px 8px 12px 8px; border-bottom:1px solid var(--hair);}
+    #modalHead h2{margin:0; font-size:16px; letter-spacing:.06em;}
+    #modalHead p{margin:6px 0 0 0; color:var(--muted); font-size:12px; line-height:1.4;}
+    #close{cursor:pointer; user-select:none; padding:10px 12px; border-radius:12px; border:1px solid var(--hair); background:rgba(255,255,255,.06); font-size:12px;}
+    #modalBody{padding:12px 8px 6px 8px; display:grid; gap:12px;}
+    .media{border:1px solid var(--hair); border-radius:14px; overflow:hidden; background:rgba(255,255,255,.03);}
+    .media img{display:block; width:100%; height:auto;}
+    .media iframe{display:block; width:100%; aspect-ratio:16/9; border:0;}
+    .row{display:flex; flex-wrap:wrap; gap:10px; align-items:center;}
+    .a{color:var(--ink); text-decoration:none; border-bottom:1px solid rgba(244,244,246,.3);}
+    .a:hover{border-bottom-color:rgba(244,244,246,.7);}
+    /* Mobile controls pads */
+    #pads{position:fixed; inset:0; display:none; pointer-events:auto;}
+    .pad{position:absolute; bottom:14px; width:44vw; height:38vh; max-height:320px; border-radius:22px; border:1px solid rgba(244,244,246,.10); background:rgba(255,255,255,.03);}
+    #padMove{left:14px;}
+    #padLook{right:14px;}
+    .stick{position:absolute; left:50%; top:50%; width:110px; height:110px; transform:translate(-50%,-50%); border-radius:999px; border:1px solid rgba(244,244,246,.16); background:rgba(0,0,0,.18);}
+    .nub{position:absolute; left:50%; top:50%; width:54px; height:54px; transform:translate(-50%,-50%); border-radius:999px; border:1px solid rgba(244,244,246,.22); background:rgba(255,255,255,.06);}
+    @media (max-width: 860px){
+      #leftbar{width:min(360px, calc(100vw - 32px));}
+      #sign{display:none;}
     }
   </style>
 </head>
 <body>
-  <canvas id="c" aria-hidden="true"></canvas>
+<div id="wrap"></div>
 
-  <div id="ui">
-    <div class="top">
-      <div class="card">
-        <h1>Reinis Kalnaellis · WebGL Gallery Room</h1>
-        <div class="sub">
-          If you see only a black void: this file now shows diagnostics.
-          Posters load from <code>./assets/</code> and fall back to placeholders if paths are wrong.
-        </div>
-
-        <div class="row">
-          <button class="btn primary" id="enterBtn" type="button">Enter room</button>
-          <button class="btn" id="audioBtn" type="button">Start audio</button>
-          <button class="btn" id="fsBtn" type="button">Fullscreen</button>
-          <button class="btn" id="helpBtn" type="button">Help</button>
-        </div>
-
-        <div class="chipRow" id="filters"></div>
-
-        <div class="kv mono">
-          <div>Selected: <span id="sel">none</span></div>
-          <div>Distance: <span id="dist">–</span></div>
-        </div>
-
-        <div id="status" class="mono">Booting…</div>
-      </div>
+<div id="ui">
+  <div id="topbar">
+    <div id="brand" class="panel">
+      <b>HUMAN</b>
+      <small><span id="typed"></span></small>
     </div>
-
-    <div id="stick" aria-label="Movement joystick">
-      <div class="ring"><div class="knob" id="knob"></div></div>
-    </div>
-
-    <div id="backdrop" role="dialog" aria-modal="true" aria-label="Media viewer">
-      <div id="modal">
-        <div class="mTop">
-          <div>
-            <h2 id="mTitle">Title</h2>
-            <div class="mSub" id="mSub">Category</div>
-          </div>
-          <button class="x" id="closeBtn" type="button" aria-label="Close">✕</button>
-        </div>
-        <div class="mBody" id="mBody"></div>
-      </div>
+    <div id="nav" class="panel">
+      <div class="navlink" data-nav="creator">Creator</div>
+      <div class="navlink" data-nav="creations">Creations</div>
+      <div class="navlink" data-nav="create">Create</div>
     </div>
   </div>
 
-  <!-- Load libs as classic scripts (more robust on Pages than ESM imports) -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/PointerLockControls.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <div id="leftbar">
+    <div id="status" class="panel">Booting…</div>
+    <div id="actions" class="panel">
+      <div id="enter" class="btn primary">Enter room</div>
+      <div id="audio" class="btn good">Audio: OFF</div>
+      <div id="reset" class="btn">Reset</div>
+      <div id="help" class="btn warn">Help</div>
+    </div>
+    <div id="filters" class="panel">
+      <h3>Filter</h3>
+      <div id="chiprow" class="chiprow"></div>
+    </div>
+  </div>
 
-  <script>
-  (() => {
-    const statusEl = document.getElementById("status");
-    const log = (msg) => { statusEl.textContent = String(msg); };
+  <div id="hint" class="panel">
+    <b>How to move</b>
+    <p>
+      Desktop: click <b>Enter room</b> to lock the mouse, then <b>WASD</b> to walk, <b>Shift</b> to sprint, <b>Esc</b> to unlock.<br/>
+      Mobile: use the two pads (move + look), tap posters to open.
+    </p>
+  </div>
 
-    // Hard fail early if libs didn't load (this is the #1 reason for "black screen with UI")
-    if (!window.THREE) {
-      log("ERROR: three.js did not load.\n\nFix:\n- Check your network blocks.\n- Open DevTools Console for 404/CSP errors.\n- If you use a strict CSP, allow cdn.jsdelivr.net.");
-      return;
-    }
+  <div id="tooltip">
+    <div id="ttTitle"></div>
+    <div id="ttSub" class="sub"></div>
+  </div>
 
-    const canvas = document.getElementById("c");
-    const enterBtn = document.getElementById("enterBtn");
-    const audioBtn = document.getElementById("audioBtn");
-    const fsBtn = document.getElementById("fsBtn");
-    const helpBtn = document.getElementById("helpBtn");
-    const filtersEl = document.getElementById("filters");
-    const selEl = document.getElementById("sel");
-    const distEl = document.getElementById("dist");
+  <div id="sign" class="panel">
+    <div class="dot" id="signDot"></div>
+    <div class="plate">
+      <b id="signTitle">CREATIONS</b>
+      <div id="signLine">Walk inside a 10×10m gallery of films, photos, music, and experiments.</div>
+    </div>
+  </div>
+</div>
 
-    const backdrop = document.getElementById("backdrop");
-    const closeBtn = document.getElementById("closeBtn");
-    const mTitle = document.getElementById("mTitle");
-    const mSub = document.getElementById("mSub");
-    const mBody = document.getElementById("mBody");
+<div id="pads">
+  <div id="padMove" class="pad"><div class="stick"><div class="nub" id="nubMove"></div></div></div>
+  <div id="padLook" class="pad"><div class="stick"><div class="nub" id="nubLook"></div></div></div>
+</div>
 
-    const isMobile = () => matchMedia("(pointer: coarse)").matches;
+<div id="modal">
+  <div id="modalCard" class="panel">
+    <div id="modalHead">
+      <div>
+        <h2 id="mTitle">Title</h2>
+        <p id="mSub">Subtitle</p>
+      </div>
+      <div id="close">Close</div>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
 
-    // ========= EDIT YOUR CONTENT HERE =========
-    const GALLERY = [
-      { id:"thelma", category:"Film", title:"Thelma’s Perfect Birthday", subtitle:"Poster", kind:"image", image:"./assets/posters/thelma.jpg", note:"Replace image path." },
-      { id:"hugo", category:"Film", title:"Singing Hugo", subtitle:"Trailer / clip", kind:"youtube", youtubeId:"kZB-OEWc0eQ", image:"", note:"Set youtubeId. Thumbnail auto-loads." },
-      { id:"photo01", category:"Photography", title:"Analog Print 01", subtitle:"Placeholder photo", kind:"image", image:"./assets/photos/rolleiflex_01.jpg", note:"Put your real file here." },
-      { id:"music01", category:"Music", title:"Spatial Track 01", subtitle:"Audio poster", kind:"audio", image:"./assets/posters/music_01.jpg", audio:"./assets/audio/track01.mp3", note:"Audio becomes louder as you approach." },
-      { id:"digital01", category:"Digital", title:"AI / VR Experiments", subtitle:"YouTube", kind:"youtube", youtubeId:"kZB-OEWc0eQ", image:"", note:"Set youtubeId." },
-    ];
-    // ========================================
+<!-- Libraries (keep minimal, fewer things to break) -->
+<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://unpkg.com/typed.js@2.0.16/dist/typed.umd.js"></script>
 
-    const CATEGORIES = ["All", ...Array.from(new Set(GALLERY.map(g => g.category)))];
-    let activeCategory = "All";
+<script>
+(() => {
+  const statusEl = document.getElementById("status");
+  const wrap = document.getElementById("wrap");
+  const enterBtn = document.getElementById("enter");
+  const audioBtn = document.getElementById("audio");
+  const resetBtn = document.getElementById("reset");
+  const helpBtn = document.getElementById("help");
+  const chipsEl = document.getElementById("chiprow");
+  const tooltip = document.getElementById("tooltip");
+  const ttTitle = document.getElementById("ttTitle");
+  const ttSub = document.getElementById("ttSub");
+  const modal = document.getElementById("modal");
+  const modalBody = document.getElementById("modalBody");
+  const closeBtn = document.getElementById("close");
+  const mTitle = document.getElementById("mTitle");
+  const mSub = document.getElementById("mSub");
+  const pads = document.getElementById("pads");
+  const padMove = document.getElementById("padMove");
+  const padLook = document.getElementById("padLook");
+  const nubMove = document.getElementById("nubMove");
+  const nubLook = document.getElementById("nubLook");
+  const signTitle = document.getElementById("signTitle");
+  const signLine = document.getElementById("signLine");
+  const signDot = document.getElementById("signDot");
 
-    function escapeHtml(str){
-      return (str||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
-    }
-    function renderModalBody(item){
-      const safeNote = item.note ? `<div class="hr"></div><div style="color:rgba(244,244,246,.7)">${escapeHtml(item.note)}</div>` : "";
-      if(item.kind === "youtube"){
-        const id = item.youtubeId && item.youtubeId !== "PASTE_YOUTUBE_ID_HERE" ? item.youtubeId : "";
-        const warn = !id ? `<div class="mediaBox"><b>Missing YouTube ID.</b><div style="color:rgba(244,244,246,.72)">Edit <code>youtubeId</code> in <code>GALLERY</code>.</div></div>` : "";
-        const player = id ? `<div class="mediaBox"><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen src="https://www.youtube-nocookie.com/embed/${id}?rel=0"></iframe></div>` : "";
-        return `<div><b>${escapeHtml(item.subtitle || "")}</b></div>${warn}${player}${safeNote}`;
-      }
-      if(item.kind === "audio"){
-        const src = item.audio || "";
-        const warn = !src ? `<div class="mediaBox"><b>Missing audio file.</b></div>` : "";
-        const player = src ? `<div class="mediaBox"><audio controls preload="none" src="${src}"></audio></div>` : "";
-        return `<div><b>${escapeHtml(item.subtitle || "")}</b></div><div style="color:rgba(244,244,246,.72)">Spatial audio in-room (after “Start audio”). Player is fallback.</div>${warn}${player}${safeNote}`;
-      }
-      const src = item.image || "";
-      const img = src ? `<div class="mediaBox"><img alt="${escapeHtml(item.title||"Artwork")}" src="${src}"></div>` :
-                        `<div class="mediaBox"><b>No image path set.</b></div>`;
-      return `<div><b>${escapeHtml(item.subtitle || "")}</b></div>${img}${safeNote}`;
-    }
-    function openModal(item){
-      mTitle.textContent = item.title || "Untitled";
-      mSub.textContent = `${item.category || "Category"} · ${item.kind || "media"}`;
-      mBody.innerHTML = renderModalBody(item);
-      backdrop.style.display = "flex";
-    }
-    function closeModal(){
-      backdrop.style.display = "none";
-      const iframe = mBody.querySelector("iframe");
-      if(iframe) iframe.src = iframe.src;
-    }
-    closeBtn.addEventListener("click", closeModal);
-    backdrop.addEventListener("click", (e)=>{ if(e.target === backdrop) closeModal(); });
-    window.addEventListener("keydown", (e)=>{ if(e.key === "Escape") closeModal(); });
+  function log(msg, tone="muted"){
+    const prefix = tone==="ok" ? "✓ " : tone==="warn" ? "⚠ " : tone==="bad" ? "✕ " : "• ";
+    statusEl.textContent = prefix + msg;
+    if(tone==="ok") statusEl.style.color = "var(--ok)";
+    else if(tone==="warn") statusEl.style.color = "var(--warn)";
+    else if(tone==="bad") statusEl.style.color = "var(--bad)";
+    else statusEl.style.color = "var(--muted)";
+  }
 
-    // Filters
-    function rebuildFilters(){
-      filtersEl.innerHTML = "";
-      CATEGORIES.forEach(cat=>{
-        const b = document.createElement("div");
-        b.className = "chip" + (cat === activeCategory ? " active" : "");
-        b.textContent = cat;
-        b.addEventListener("click", ()=>{
-          activeCategory = cat;
-          rebuildFilters();
-          rebuildPosters();
-        });
-        filtersEl.appendChild(b);
-      });
-    }
-    rebuildFilters();
+  // Hard truth: if THREE doesn't load, you get UI only.
+  if(!window.THREE){
+    log("three.js failed to load (network/CSP). Try another network or host three.min.js locally.", "bad");
+    return;
+  }
 
-    // WebGL init
-    let renderer;
-    try{
-      renderer = new THREE.WebGLRenderer({ canvas, antialias:true, powerPreference:"high-performance" });
-    }catch(e){
-      log("ERROR: WebGL renderer failed to create.\n\nLikely causes:\n- WebGL disabled in browser settings\n- GPU driver issue\n- In-app browser blocking WebGL\n\nDetails:\n" + e);
-      return;
-    }
-    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-    renderer.setSize(innerWidth, innerHeight);
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x07070c);
-    scene.fog = new THREE.Fog(0x07070c, 6, 18);
-
-    const camera = new THREE.PerspectiveCamera(65, innerWidth/innerHeight, 0.1, 80);
-    camera.position.set(0, 1.6, 3.6);
-
-    // Brighter gallery lighting so it isn't a void
-    scene.add(new THREE.AmbientLight(0xffffff, 0.70));
-    const key = new THREE.DirectionalLight(0xffffff, 0.9);
-    key.position.set(4, 7, 3);
-    scene.add(key);
-    const fill = new THREE.DirectionalLight(0xffffff, 0.35);
-    fill.position.set(-4, 3, -2);
-    scene.add(fill);
-
-    // Room 10×10×3
-    const ROOM = { w:10, d:10, h:3 };
-    const roomGeo = new THREE.BoxGeometry(ROOM.w, ROOM.h, ROOM.d);
-    const roomMat = new THREE.MeshStandardMaterial({
-      color: 0x121225,
-      roughness: 0.92,
-      metalness: 0.0,
-      emissive: new THREE.Color(0x0a0a10),
-      emissiveIntensity: 0.45,
-      side: THREE.BackSide
+  // Typed intro (fails silently if typed.js doesn't load)
+  try{
+    new Typed("#typed", {
+      strings: ["filmmaker", "photographer", "digital artist", "events"],
+      typeSpeed: 36,
+      backSpeed: 18,
+      backDelay: 1100,
+      loop: true,
+      showCursor: true,
+      cursorChar: "▌"
     });
-    const room = new THREE.Mesh(roomGeo, roomMat);
-    room.position.y = ROOM.h/2;
-    scene.add(room);
+  } catch(e){ /* typed.js optional */ }
 
-    // Floor plane with visible tone
-    const floorGeo = new THREE.PlaneGeometry(ROOM.w, ROOM.d);
-    const floorMat = new THREE.MeshStandardMaterial({ color:0x0c0c18, roughness:0.98, metalness:0.0 });
-    const floor = new THREE.Mesh(floorGeo, floorMat);
-    floor.rotation.x = -Math.PI/2;
-    floor.position.y = 0.0;
-    scene.add(floor);
+  const ROOM = { w:10, d:10, h:4.0 }; // meters in our little fake world
 
-    const grid = new THREE.GridHelper(ROOM.w, 20, 0x888888, 0x333333);
-    grid.position.y = 0.01;
-    grid.material.opacity = 0.28;
-    grid.material.transparent = true;
-    scene.add(grid);
+  // === CONTENT (edit this) ===
+  // Put your real assets in /assets/... inside your GitHub repo.
+  const GALLERY = [
+    // FILM
+    { id:"thelma", category:"Film", kind:"poster", title:"Thelma’s Perfect Birthday", subtitle:"Feature animation • trailer & posters", image:"./assets/posters/thelma.jpg", link:"https://rijafilms.com", audio:"./assets/audio/thelma_theme.mp3" },
+    { id:"hugo", category:"Film", kind:"poster", title:"Singing Hugo & His Incredible Adventures", subtitle:"Feature animation • access portal", image:"./assets/posters/hugo.jpg", link:"https://reinis.kalnaellis.com", audio:"./assets/audio/hugo_loop.mp3" },
+    { id:"potato", category:"Film", kind:"poster", title:"A Potato Man with Big Dreams", subtitle:"Satire / IP • pitch & dev", image:"./assets/posters/potato.jpg", link:"https://rijafilms.com", audio:"./assets/audio/potato_beat.mp3" },
 
-    // Controls (PointerLockControls is the classic script version)
-    const plc = new THREE.PointerLockControls(camera, renderer.domElement);
-    let walking = false;
+    // PHOTO
+    { id:"rolleiflex1", category:"Photography", kind:"photo", title:"Analog Prints", subtitle:"Rolleiflex experiments", image:"./assets/photos/photo01.jpg", link:"#", audio:"./assets/audio/camera_clicks.mp3" },
+    { id:"rolleiflex2", category:"Photography", kind:"photo", title:"Double Exposure", subtitle:"Soulful magic, properly unexplainable", image:"./assets/photos/photo02.jpg", link:"#", audio:"./assets/audio/roomtone.mp3" },
+    { id:"prints", category:"Photography", kind:"photo", title:"Print Shop", subtitle:"Limited edition prints", image:"./assets/photos/photo03.jpg", link:"#", audio:"./assets/audio/roomtone.mp3" },
 
-    enterBtn.addEventListener("click", ()=>{
-      if(!isMobile()) plc.lock();
-      walking = true;
-    });
-    plc.addEventListener("lock", ()=> walking = true);
-    plc.addEventListener("unlock", ()=> walking = false);
+    // MUSIC
+    { id:"bass", category:"Music", kind:"music", title:"AI / Music Experiments", subtitle:"Loops, beats, odd feelings", image:"./assets/music/cover01.jpg", link:"#", audio:"./assets/audio/bsk.mp3" },
+    { id:"rap", category:"Music", kind:"music", title:"Beverina Rap", subtitle:"History + party + archives", image:"./assets/music/cover02.jpg", link:"#", audio:"./assets/audio/beat02.mp3" },
+    { id:"label", category:"Music", kind:"music", title:"Record Label (prototype)", subtitle:"Digital-first micro releases", image:"./assets/music/cover03.jpg", link:"#", audio:"./assets/audio/beat03.mp3" },
 
-    // Touch look (mobile)
-    let look = { active:false, x:0, y:0, yaw:0, pitch:0 };
-    renderer.domElement.addEventListener("pointerdown", (e)=>{
-      if(!isMobile()) return;
-      look.active = true;
-      look.x = e.clientX; look.y = e.clientY;
-    });
-    renderer.domElement.addEventListener("pointermove", (e)=>{
-      if(!isMobile() || !look.active) return;
-      const dx = e.clientX - look.x;
-      const dy = e.clientY - look.y;
-      look.x = e.clientX; look.y = e.clientY;
-      const s = 0.0025;
-      look.yaw -= dx*s;
-      look.pitch -= dy*s;
-      look.pitch = Math.max(-1.1, Math.min(1.1, look.pitch));
-      camera.rotation.set(look.pitch, look.yaw, 0);
-    });
-    window.addEventListener("pointerup", ()=> look.active = false);
+    // YOUTUBE
+    { id:"yt1", category:"YouTube", kind:"youtube", title:"Rija Films Channel", subtitle:"Trailers / BTS / shorts", image:"./assets/youtube/yt01.jpg", youtube:"PASTE_YOUTUBE_ID", link:"https://www.youtube.com/@rijafilms", audio:"./assets/audio/roomtone.mp3" },
+    { id:"yt2", category:"YouTube", kind:"youtube", title:"Process Vlog", subtitle:"Chaos, but cinematic", image:"./assets/youtube/yt02.jpg", youtube:"PASTE_YOUTUBE_ID", link:"#", audio:"./assets/audio/roomtone.mp3" },
 
-    // Keys
-    const keys = { w:false,a:false,s:false,d:false,shift:false };
-    window.addEventListener("keydown", (e)=>{
-      const k = e.key.toLowerCase();
-      if(k==="w") keys.w=true;
-      if(k==="a") keys.a=true;
-      if(k==="s") keys.s=true;
-      if(k==="d") keys.d=true;
-      if(k==="shift") keys.shift=true;
-      if(k==="e") tryInteract();
-    });
-    window.addEventListener("keyup", (e)=>{
-      const k = e.key.toLowerCase();
-      if(k==="w") keys.w=false;
-      if(k==="a") keys.a=false;
-      if(k==="s") keys.s=false;
-      if(k==="d") keys.d=false;
-      if(k==="shift") keys.shift=false;
-    });
+    // EVENTS
+    { id:"kino", category:"Events", kind:"event", title:"Kino Māja / Studio", subtitle:"Screenings, workshops, VR", image:"./assets/events/event01.jpg", link:"#", audio:"./assets/audio/crowd_low.mp3" },
+    { id:"retreat", category:"Events", kind:"event", title:"Valmiera Riverside Retreat", subtitle:"A place to breathe and work", image:"./assets/events/event02.jpg", link:"#", audio:"./assets/audio/roomtone.mp3" },
 
-    // Mobile joystick
-    const stick = document.getElementById("stick");
-    const knob = document.getElementById("knob");
-    let stickActive=false, stickCenter={x:0,y:0}, moveStick={x:0,y:0};
+    // DIGITAL ART
+    { id:"vr", category:"Digital Art", kind:"digital", title:"VR / AR Playground", subtitle:"Interactive rooms & artifacts", image:"./assets/digital/digital01.jpg", link:"#", audio:"./assets/audio/roomtone.mp3" },
+    { id:"webgl", category:"Digital Art", kind:"digital", title:"WebGL Experiments", subtitle:"Shaders, scrolling, and questionable ideas", image:"./assets/digital/digital02.jpg", link:"#", audio:"./assets/audio/roomtone.mp3" },
+  ];
 
-    function updateJoystickVisibility(){ stick.style.display = isMobile() ? "block" : "none"; }
-    updateJoystickVisibility();
+  const CATEGORIES = ["All", ...Array.from(new Set(GALLERY.map(x => x.category)))];
 
-    stick.addEventListener("pointerdown", (e)=>{
-      stickActive=true;
-      stick.setPointerCapture(e.pointerId);
-      const r = stick.getBoundingClientRect();
-      stickCenter.x = r.left + r.width/2;
-      stickCenter.y = r.top + r.height/2;
-      updateStick(e.clientX, e.clientY);
-      walking = true;
-    });
-    stick.addEventListener("pointermove", (e)=>{ if(stickActive) updateStick(e.clientX, e.clientY); });
-    stick.addEventListener("pointerup", ()=>{
-      stickActive=false;
-      moveStick.x=0; moveStick.y=0;
-      knob.style.transform = "translate(-50%,-50%)";
-    });
-    function updateStick(x,y){
-      const dx = x - stickCenter.x;
-      const dy = y - stickCenter.y;
-      const max=34;
-      const nx = Math.max(-max, Math.min(max, dx));
-      const ny = Math.max(-max, Math.min(max, dy));
-      knob.style.transform = `translate(${nx - 23}px, ${ny - 23}px)`;
-      moveStick.x = nx/max;
-      moveStick.y = ny/max;
-    }
-
-    function clampToRoom(){
-      const margin=0.55;
-      camera.position.x = Math.max(-ROOM.w/2+margin, Math.min(ROOM.w/2-margin, camera.position.x));
-      camera.position.z = Math.max(-ROOM.d/2+margin, Math.min(ROOM.d/2-margin, camera.position.z));
-      camera.position.y = Math.max(0.5, Math.min(2.2, camera.position.y));
-    }
-
-    // Posters
-    const texLoader = new THREE.TextureLoader();
-    const posterGroup = new THREE.Group();
-    scene.add(posterGroup);
-
-    const raycaster = new THREE.Raycaster();
-    const pointer = new THREE.Vector2(0,0);
-    let posters = [];
-    let hovered = null;
-
-    function accentForCategory(cat){
-      return ({ Film:"#7dd3fc", Photography:"#facc15", Music:"#a7f3d0", Digital:"#c4b5fd", Events:"#fda4af" }[cat] || "#ffffff");
-    }
-
-    function makePlaceholderTexture(label, sublabel, accent="#ffffff"){
-      const c = document.createElement("canvas");
-      c.width=1024; c.height=1536;
-      const ctx = c.getContext("2d");
-
-      const g = ctx.createLinearGradient(0,0,1024,1536);
-      g.addColorStop(0, "#141428");
-      g.addColorStop(1, "#07070c");
-      ctx.fillStyle=g; ctx.fillRect(0,0,c.width,c.height);
-
-      ctx.globalAlpha=0.18;
-      for(let i=0;i<2200;i++){
-        ctx.fillStyle = `rgba(255,255,255,${Math.random()*0.16})`;
-        ctx.fillRect(Math.random()*c.width, Math.random()*c.height, Math.random()*2.2+0.2, Math.random()*2.2+0.2);
-      }
-      ctx.globalAlpha=1;
-
-      ctx.strokeStyle="rgba(255,255,255,0.22)";
-      ctx.lineWidth=10; ctx.strokeRect(30,30,c.width-60,c.height-60);
-
-      ctx.fillStyle=accent; ctx.globalAlpha=0.18;
-      ctx.fillRect(60, 120, c.width-120, 22);
-      ctx.globalAlpha=1;
-
-      ctx.fillStyle="rgba(244,244,246,0.92)";
-      ctx.font="900 82px ui-sans-serif, system-ui";
-      ctx.textBaseline="top";
-      wrapText(ctx, (label||"PLACEHOLDER").toUpperCase(), 60, 190, c.width-120, 90);
-
-      ctx.fillStyle="rgba(244,244,246,0.62)";
-      ctx.font="700 40px ui-sans-serif, system-ui";
-      ctx.fillText((sublabel||"").toUpperCase(), 60, 540);
-
-      const tex = new THREE.CanvasTexture(c);
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.needsUpdate = true;
-      return tex;
-    }
-
-    function wrapText(ctx, text, x, y, maxWidth, lineHeight){
-      const words = text.split(" ");
-      let line = "";
-      for(let n=0;n<words.length;n++){
-        const test = line + words[n] + " ";
-        const w = ctx.measureText(test).width;
-        if(w > maxWidth && n>0){
-          ctx.fillText(line, x, y);
-          line = words[n] + " ";
-          y += lineHeight;
-        }else line = test;
-      }
-      ctx.fillText(line, x, y);
-    }
-
-    function buildPoster(item, pos, rotY){
-      const g = new THREE.Group();
-      g.position.copy(pos);
-      g.rotation.y = rotY;
-
-      const frame = new THREE.Mesh(
-        new THREE.PlaneGeometry(1.18, 1.76),
-        new THREE.MeshStandardMaterial({ color:0x0b0b12, roughness:0.55, metalness:0.12 })
-      );
-      g.add(frame);
-
-      const surface = new THREE.Mesh(
-        new THREE.PlaneGeometry(1.08, 1.62),
-        new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.92, metalness:0.0, emissive:new THREE.Color(0x000000), emissiveIntensity:0 })
-      );
-      surface.position.z = 0.012;
-      surface.userData.item = item;
-      g.add(surface);
-
-      // Small light aimed at poster
-      const spot = new THREE.SpotLight(0xffffff, 0.85, 6.0, Math.PI/5, 0.55, 1.7);
-      spot.position.set(0, 1.7, 1.2);
-      spot.target = surface;
-      g.add(spot);
-      g.add(spot.target);
-
-      if(window.gsap){
-        gsap.to(g.position, { y: g.position.y + 0.03, duration: 2.5 + Math.random(), yoyo:true, repeat:-1, ease:"sine.inOut" });
-      }
-
-      const accent = accentForCategory(item.category);
-      const placeholder = makePlaceholderTexture(item.title, item.subtitle || item.category, accent);
-
-      function applyTexture(tex){
-        tex.colorSpace = THREE.SRGBColorSpace;
-        tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-        surface.material.map = tex;
-        surface.material.needsUpdate = true;
-      }
-
-      let src = item.image || "";
-      if(item.kind === "youtube" && (!src || src.trim()==="")){
-        const id = item.youtubeId;
-        if(id && id !== "PASTE_YOUTUBE_ID_HERE") src = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
-      }
-      if(src){
-        texLoader.load(src, applyTexture, undefined, ()=>applyTexture(placeholder));
-      }else{
-        applyTexture(placeholder);
-      }
-
-      return { group:g, mesh:surface, item };
-    }
-
-    function rebuildPosters(){
-      posterGroup.clear();
-      posters = [];
-
-      const items = GALLERY.filter(g => activeCategory === "All" ? true : g.category === activeCategory);
-
-      // Correct wall positions
-      const backZ  = -ROOM.d/2 + 0.10;
-      const frontZ =  ROOM.d/2 - 0.10;
-      const rightX =  ROOM.w/2 - 0.10;
-      const leftX  = -ROOM.w/2 + 0.10;
-
-      const slots = [];
-      for(let i=0;i<3;i++) slots.push({ pos:new THREE.Vector3(-3.2 + i*3.2, 1.55, backZ),  rot: 0 });
-      for(let i=0;i<3;i++) slots.push({ pos:new THREE.Vector3(rightX, 1.55, -3.2 + i*3.2), rot: -Math.PI/2 });
-      for(let i=0;i<3;i++) slots.push({ pos:new THREE.Vector3(-3.2 + i*3.2, 1.55, frontZ), rot: Math.PI });
-      for(let i=0;i<3;i++) slots.push({ pos:new THREE.Vector3(leftX, 1.55, -3.2 + i*3.2),  rot: Math.PI/2 });
-
-      items.forEach((it, i)=>{
-        const slot = slots[i % slots.length];
-        const p = buildPoster(it, slot.pos, slot.rot);
-        posterGroup.add(p.group);
-        posters.push(p);
-      });
-
-      log(`OK: WebGL running\nPosters: ${posters.length}\nAssets root: ./assets/\n\nIf your own images still don't show:\n- GitHub Pages is CASE-SENSITIVE\n- Use ./assets/... not /assets/...\n- Check DevTools → Network (404s)\n`);
-    }
+  // === Build chips ===
+  const state = { filter:"All", hovered:null, selected:null, locked:false, walking:false, audioEnabled:false };
+  CATEGORIES.forEach(cat => {
+    const chip = document.createElement("div");
+    chip.className = "chip" + (cat==="All" ? " active" : "");
+    chip.textContent = cat;
+    chip.addEventListener("click", () => setFilter(cat));
+    chipsEl.appendChild(chip);
+  });
+  function setFilter(cat){
+    state.filter = cat;
+    [...chipsEl.children].forEach(ch => ch.classList.toggle("active", ch.textContent===cat));
     rebuildPosters();
+    flipSign(cat);
+  }
 
-    // Raycast hover + interact
-    function findHit(){
-      raycaster.setFromCamera(pointer, camera);
-      const meshes = posters.map(p=>p.mesh);
-      const hits = raycaster.intersectObjects(meshes, false);
-      if(hits.length){
-        const mesh = hits[0].object;
-        return { mesh, item: mesh.userData.item };
+  // === Traffic sign animation ===
+  function flipSign(cat){
+    const title = cat==="All" ? "CREATIONS" : cat.toUpperCase();
+    const line = cat==="All"
+      ? "Walk inside a 10×10m gallery of films, photos, music, and experiments."
+      : `Now showing: ${cat}. Walk closer, click posters, steal inspiration.`;
+    signTitle.textContent = title;
+    signLine.textContent = line;
+    if(window.gsap){
+      gsap.fromTo("#sign .plate", { rotationX: -70, transformOrigin:"50% 0%", opacity:0.2 }, { rotationX:0, opacity:1, duration:0.55, ease:"power2.out" });
+      gsap.fromTo(signDot, { scale:0.6, opacity:0.4 }, { scale:1, opacity:1, duration:0.35, ease:"power2.out" });
+    }
+  }
+
+  // === Three.js scene ===
+  const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(innerWidth, innerHeight);
+  wrap.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x070710);
+  scene.fog = new THREE.Fog(0x070710, 6, 22);
+
+  const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.05, 60);
+  camera.position.set(0, 1.6, 3.8);
+  camera.rotation.order = "YXZ";
+
+  // room box
+  const roomGeo = new THREE.BoxGeometry(ROOM.w, ROOM.h, ROOM.d);
+  const roomMat = new THREE.MeshStandardMaterial({ color:0x0b0b16, roughness:0.92, metalness:0.0, side:THREE.BackSide });
+  const room = new THREE.Mesh(roomGeo, roomMat);
+  room.position.y = ROOM.h/2;
+  scene.add(room);
+
+  const floorGeo = new THREE.PlaneGeometry(ROOM.w, ROOM.d);
+  const floorMat = new THREE.MeshStandardMaterial({ color:0x0c0c18, roughness:0.98, metalness:0.0 });
+  const floor = new THREE.Mesh(floorGeo, floorMat);
+  floor.rotation.x = -Math.PI/2;
+  floor.position.y = 0;
+  scene.add(floor);
+
+  const grid = new THREE.GridHelper(ROOM.w, 20, 0x6677aa, 0x223355);
+  grid.position.y = 0.01;
+  grid.material.opacity = 0.22;
+  grid.material.transparent = true;
+  scene.add(grid);
+
+  // lighting
+  scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+  const key = new THREE.DirectionalLight(0xffffff, 0.55);
+  key.position.set(3.5, 5.0, 2.5);
+  scene.add(key);
+  const lamp1 = new THREE.PointLight(0xffffff, 0.55, 12);
+  lamp1.position.set(-3.8, 2.8, -3.8);
+  scene.add(lamp1);
+  const lamp2 = new THREE.PointLight(0xffffff, 0.55, 12);
+  lamp2.position.set(3.8, 2.8, 3.8);
+  scene.add(lamp2);
+
+  // === Posters (planes) ===
+  const raycaster = new THREE.Raycaster();
+  const pointer = new THREE.Vector2();
+  const posters = []; // {mesh, item, panner?}
+  const group = new THREE.Group();
+  scene.add(group);
+
+  const loader = new THREE.TextureLoader();
+  loader.crossOrigin = "anonymous";
+
+  function makePlaceholderTexture(item){
+    const c = document.createElement("canvas");
+    c.width = 512; c.height = 512;
+    const g = c.getContext("2d");
+    g.fillStyle = "#0a0a14"; g.fillRect(0,0,c.width,c.height);
+    // fake film grain / stripes
+    g.fillStyle = "rgba(255,255,255,.06)";
+    for(let i=0;i<24;i++){
+      const y = Math.floor((i/24)*c.height);
+      g.fillRect(0, y, c.width, 1);
+    }
+    g.strokeStyle = "rgba(255,255,255,.18)";
+    g.lineWidth = 6;
+    g.strokeRect(18,18,c.width-36,c.height-36);
+
+    g.fillStyle = "rgba(255,255,255,.92)";
+    g.font = "bold 36px ui-sans-serif, system-ui";
+    g.fillText((item.category||"").toUpperCase(), 42, 74);
+
+    g.fillStyle = "rgba(255,255,255,.88)";
+    g.font = "bold 34px ui-sans-serif, system-ui";
+    wrapText(g, item.title||"Untitled", 42, 150, c.width-84, 44);
+
+    g.fillStyle = "rgba(255,255,255,.62)";
+    g.font = "24px ui-sans-serif, system-ui";
+    wrapText(g, item.subtitle||"Placeholder image", 42, 300, c.width-84, 34);
+
+    g.fillStyle = "rgba(255,255,255,.28)";
+    g.font = "18px ui-monospace, Menlo, Consolas, monospace";
+    g.fillText(item.image||"./assets/…", 42, c.height-54);
+
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace || undefined;
+    tex.needsUpdate = true;
+    return tex;
+  }
+
+  function wrapText(ctx, text, x, y, maxWidth, lineHeight){
+    const words = (text||"").split(" ");
+    let line = "";
+    for(let n=0;n<words.length;n++){
+      const testLine = line + words[n] + " ";
+      const metrics = ctx.measureText(testLine);
+      if(metrics.width > maxWidth && n>0){
+        ctx.fillText(line, x, y);
+        line = words[n] + " ";
+        y += lineHeight;
+      } else {
+        line = testLine;
       }
-      return null;
+    }
+    ctx.fillText(line, x, y);
+  }
+
+  function placeItems(items){
+    // Layout: posters on walls around the room, evenly spaced.
+    // Walls: z = ±(ROOM.d/2 - 0.02), x = ±(ROOM.w/2 - 0.02)
+    const margin = 0.12;
+    const wallZ = ROOM.d/2 - margin;
+    const wallX = ROOM.w/2 - margin;
+    const y = 1.75;
+
+    const perWall = Math.ceil(items.length / 4);
+    let idx = 0;
+
+    function addOnWall(count, wall){
+      for(let i=0;i<count && idx<items.length;i++,idx++){
+        const item = items[idx];
+        const size = item.kind==="photo" ? [1.3,1.3] : item.kind==="music" ? [1.25,1.25] : [1.65,1.05];
+        const w = size[0], h = size[1];
+        const geo = new THREE.PlaneGeometry(w, h);
+        const placeholder = makePlaceholderTexture(item);
+        const mat = new THREE.MeshStandardMaterial({ map: placeholder, roughness:0.65, metalness:0.0, emissive:0x000000 });
+        const mesh = new THREE.Mesh(geo, mat);
+
+        // frame
+        const frameGeo = new THREE.BoxGeometry(w+0.08, h+0.08, 0.05);
+        const frameMat = new THREE.MeshStandardMaterial({ color:0x111126, roughness:0.8, metalness:0.1 });
+        const frame = new THREE.Mesh(frameGeo, frameMat);
+        frame.position.z = -0.03;
+        mesh.add(frame);
+
+        // position on chosen wall
+        const t = count<=1 ? 0.5 : i/(count-1);
+        const span = 0.78; // fraction of wall length
+        const s = (t-0.5) * span;
+
+        if(wall==="north"){ // z-
+          mesh.position.set(s*(ROOM.w-1.0), y, -wallZ);
+          mesh.rotation.y = 0;
+        } else if(wall==="south"){ // z+
+          mesh.position.set(-s*(ROOM.w-1.0), y, wallZ);
+          mesh.rotation.y = Math.PI;
+        } else if(wall==="east"){ // x+
+          mesh.position.set(wallX, y, s*(ROOM.d-1.0));
+          mesh.rotation.y = -Math.PI/2;
+        } else if(wall==="west"){ // x-
+          mesh.position.set(-wallX, y, -s*(ROOM.d-1.0));
+          mesh.rotation.y = Math.PI/2;
+        }
+
+        mesh.userData.item = item;
+        group.add(mesh);
+        posters.push({ mesh, item, placeholder });
+
+        // load real texture (if exists)
+        if(item.image){
+          loader.load(
+            item.image,
+            (tex)=>{
+              tex.colorSpace = THREE.SRGBColorSpace || undefined;
+              tex.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
+              mat.map = tex;
+              mat.needsUpdate = true;
+            },
+            undefined,
+            ()=>{ /* keep placeholder */ }
+          );
+        }
+      }
     }
 
-    function applyHover(hit){
-      if(hovered && (!hit || hit.mesh !== hovered.mesh)){
-        hovered.mesh.material.emissive.setHex(0x000000);
-        hovered.mesh.material.emissiveIntensity = 0;
-        hovered = null;
-      }
-      if(hit && (!hovered || hit.mesh !== hovered.mesh)){
-        hovered = hit;
-        hit.mesh.material.emissive.setHex(0xffffff);
-        hit.mesh.material.emissiveIntensity = 0.22;
+    addOnWall(perWall, "north");
+    addOnWall(perWall, "east");
+    addOnWall(perWall, "south");
+    addOnWall(perWall, "west");
+  }
+
+  function clearPosters(){
+    posters.length = 0;
+    while(group.children.length) group.remove(group.children[0]);
+  }
+
+  function rebuildPosters(){
+    clearPosters();
+    const items = state.filter==="All" ? GALLERY : GALLERY.filter(x => x.category===state.filter);
+    placeItems(items);
+  }
+
+  rebuildPosters();
+
+  // === Pointer lock look (custom, so we don't depend on missing example files) ===
+  let yaw = camera.rotation.y;
+  let pitch = camera.rotation.x;
+  const sensitivity = 0.0022;
+
+  function onMouseMove(e){
+    if(!state.locked) return;
+    yaw -= e.movementX * sensitivity;
+    pitch -= e.movementY * sensitivity;
+    pitch = Math.max(-Math.PI/2 + 0.06, Math.min(Math.PI/2 - 0.06, pitch));
+    camera.rotation.set(pitch, yaw, 0);
+  }
+
+  function lockPointer(){
+    const el = renderer.domElement;
+    if(el.requestPointerLock) el.requestPointerLock();
+  }
+  function unlockPointer(){
+    if(document.exitPointerLock) document.exitPointerLock();
+  }
+
+  document.addEventListener("pointerlockchange", ()=>{
+    state.locked = (document.pointerLockElement === renderer.domElement);
+    state.walking = state.locked || isMobile();
+    log(state.locked ? "Pointer locked. WASD to walk." : "Pointer unlocked.", state.locked ? "ok" : "muted");
+  });
+  document.addEventListener("mousemove", onMouseMove);
+
+  // === Movement ===
+  const keys = { w:false,a:false,s:false,d:false,shift:false };
+  window.addEventListener("keydown", (e)=>{
+    const k = e.key.toLowerCase();
+    if(k==="w") keys.w=true;
+    if(k==="a") keys.a=true;
+    if(k==="s") keys.s=true;
+    if(k==="d") keys.d=true;
+    if(k==="shift") keys.shift=true;
+    if(k==="escape" && state.locked) unlockPointer();
+  });
+  window.addEventListener("keyup", (e)=>{
+    const k = e.key.toLowerCase();
+    if(k==="w") keys.w=false;
+    if(k==="a") keys.a=false;
+    if(k==="s") keys.s=false;
+    if(k==="d") keys.d=false;
+    if(k==="shift") keys.shift=false;
+  });
+
+  const vel = new THREE.Vector3();
+  const dir = new THREE.Vector3();
+  const right = new THREE.Vector3();
+
+  // mobile sticks
+  let stickMove = {active:false, id:null, ox:0, oy:0, x:0, y:0};
+  let stickLook = {active:false, id:null, ox:0, oy:0, x:0, y:0};
+
+  function isMobile(){
+    return matchMedia("(pointer:coarse)").matches || innerWidth < 860;
+  }
+  function updatePads(){
+    pads.style.display = isMobile() ? "block" : "none";
+  }
+  updatePads();
+
+  function clampToRoom(){
+    const halfW = ROOM.w/2 - 0.35;
+    const halfD = ROOM.d/2 - 0.35;
+    camera.position.x = Math.max(-halfW, Math.min(halfW, camera.position.x));
+    camera.position.z = Math.max(-halfD, Math.min(halfD, camera.position.z));
+    camera.position.y = 1.6;
+  }
+
+  function stickVector(stick){
+    // returns x,y in [-1..1]
+    if(!stick.active) return {x:0,y:0};
+    const dx = stick.x - stick.ox;
+    const dy = stick.y - stick.oy;
+    const max = 80;
+    const nx = Math.max(-1, Math.min(1, dx/max));
+    const ny = Math.max(-1, Math.min(1, dy/max));
+    return {x:nx, y:ny};
+  }
+
+  function setNub(nub, stick){
+    if(!stick.active){ nub.style.transform="translate(-50%,-50%)"; return; }
+    const v = stickVector(stick);
+    nub.style.transform = `translate(calc(-50% + ${v.x*34}px), calc(-50% + ${v.y*34}px))`;
+  }
+
+  function onPadPointerDown(e, which){
+    e.preventDefault();
+    const s = which==="move" ? stickMove : stickLook;
+    s.active = true; s.id = e.pointerId;
+    s.ox = e.clientX; s.oy = e.clientY;
+    s.x = e.clientX; s.y = e.clientY;
+    (which==="move" ? padMove : padLook).setPointerCapture(e.pointerId);
+    setNub(which==="move" ? nubMove : nubLook, s);
+  }
+  function onPadPointerMove(e, which){
+    const s = which==="move" ? stickMove : stickLook;
+    if(!s.active || s.id!==e.pointerId) return;
+    s.x = e.clientX; s.y = e.clientY;
+    setNub(which==="move" ? nubMove : nubLook, s);
+  }
+  function onPadPointerUp(e, which){
+    const s = which==="move" ? stickMove : stickLook;
+    if(s.id!==e.pointerId) return;
+    s.active=false; s.id=null;
+    setNub(which==="move" ? nubMove : nubLook, s);
+  }
+
+  padMove.addEventListener("pointerdown", e => onPadPointerDown(e, "move"));
+  padMove.addEventListener("pointermove", e => onPadPointerMove(e, "move"));
+  padMove.addEventListener("pointerup",   e => onPadPointerUp(e, "move"));
+  padMove.addEventListener("pointercancel",e => onPadPointerUp(e, "move"));
+
+  padLook.addEventListener("pointerdown", e => onPadPointerDown(e, "look"));
+  padLook.addEventListener("pointermove", e => onPadPointerMove(e, "look"));
+  padLook.addEventListener("pointerup",   e => onPadPointerUp(e, "look"));
+  padLook.addEventListener("pointercancel",e => onPadPointerUp(e, "look"));
+
+  // === Spatial audio (WebAudio 3D, no Tone.js needed) ===
+  const audio = {
+    ctx:null, master:null, enabled:false, ready:false,
+    nodes:new Map(), // item.id -> {el, src, gain, panner}
+  };
+
+  function initAudio(){
+    if(audio.ready) return;
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if(!Ctx){ log("No WebAudio support in this browser.", "warn"); return; }
+    audio.ctx = new Ctx();
+    audio.master = audio.ctx.createGain();
+    audio.master.gain.value = 0.85;
+    audio.master.connect(audio.ctx.destination);
+    audio.ready = true;
+    log("Audio engine ready. Toggle Audio: ON to hear spatial clips.", "ok");
+  }
+
+  function ensureNodeFor(item){
+    if(!audio.ready || !item.audio || audio.nodes.has(item.id)) return;
+    const el = new Audio(item.audio);
+    el.loop = true;
+    el.preload = "auto";
+    el.crossOrigin = "anonymous";
+    const src = audio.ctx.createMediaElementSource(el);
+    const gain = audio.ctx.createGain();
+    gain.gain.value = 0.0;
+
+    const p = audio.ctx.createPanner();
+    p.panningModel = "HRTF";
+    p.distanceModel = "inverse";
+    p.refDistance = 1.1;
+    p.maxDistance = 20;
+    p.rolloffFactor = 1.2;
+    p.coneInnerAngle = 90;
+    p.coneOuterAngle = 180;
+    p.coneOuterGain = 0.25;
+
+    src.connect(gain);
+    gain.connect(p);
+    p.connect(audio.master);
+
+    audio.nodes.set(item.id, { el, src, gain, panner:p });
+  }
+
+  function setAudioFocus(item){
+    if(!audio.enabled || !audio.ready) return;
+    posters.forEach(p => ensureNodeFor(p.item));
+    for(const [id, n] of audio.nodes.entries()){
+      const target = (item && id === item.id) ? 1.0 : 0.0;
+      n.gain.gain.setTargetAtTime(target, audio.ctx.currentTime, 0.08);
+      if(target > 0.01){
+        n.el.play().catch(()=>{});
       }
     }
+  }
 
-    function tryInteract(){
-      if(!hovered) return;
-      openModal(hovered.item);
+  function updateAudioListener(){
+    if(!audio.enabled || !audio.ready) return;
+    const L = audio.ctx.listener;
+    const p = camera.position;
+    const fwd = new THREE.Vector3(0,0,-1).applyEuler(camera.rotation);
+    const up = new THREE.Vector3(0,1,0);
+
+    if(L.positionX){
+      L.positionX.setValueAtTime(p.x, audio.ctx.currentTime);
+      L.positionY.setValueAtTime(p.y, audio.ctx.currentTime);
+      L.positionZ.setValueAtTime(p.z, audio.ctx.currentTime);
+      L.forwardX.setValueAtTime(fwd.x, audio.ctx.currentTime);
+      L.forwardY.setValueAtTime(fwd.y, audio.ctx.currentTime);
+      L.forwardZ.setValueAtTime(fwd.z, audio.ctx.currentTime);
+      L.upX.setValueAtTime(up.x, audio.ctx.currentTime);
+      L.upY.setValueAtTime(up.y, audio.ctx.currentTime);
+      L.upZ.setValueAtTime(up.z, audio.ctx.currentTime);
+    } else if(L.setPosition){
+      L.setPosition(p.x,p.y,p.z);
+      L.setOrientation(fwd.x,fwd.y,fwd.z, up.x,up.y,up.z);
     }
 
-    function updateHover(){
-      if(isMobile()){
-        selEl.textContent = "tap posters";
-        distEl.textContent = "–";
-        return;
-      }
-      pointer.set(0,0);
-      const hit = findHit();
-      applyHover(hit);
-      if(hit){
-        selEl.textContent = hit.item.title || "Untitled";
-        const wp = new THREE.Vector3();
-        hit.mesh.getWorldPosition(wp);
-        distEl.textContent = wp.distanceTo(camera.position).toFixed(2) + "m";
-      }else{
-        selEl.textContent = "none";
-        distEl.textContent = "–";
+    // update poster panners in world space
+    for(const p of posters){
+      const n = audio.nodes.get(p.item.id);
+      if(!n) continue;
+      const wp = new THREE.Vector3();
+      p.mesh.getWorldPosition(wp);
+      if(n.panner.positionX){
+        n.panner.positionX.setValueAtTime(wp.x, audio.ctx.currentTime);
+        n.panner.positionY.setValueAtTime(wp.y, audio.ctx.currentTime);
+        n.panner.positionZ.setValueAtTime(wp.z, audio.ctx.currentTime);
+      } else if(n.panner.setPosition){
+        n.panner.setPosition(wp.x,wp.y,wp.z);
       }
     }
+  }
 
-    renderer.domElement.addEventListener("click", (e)=>{
-      if(isMobile()){
-        const r = canvas.getBoundingClientRect();
-        pointer.set(((e.clientX - r.left)/r.width)*2 - 1, -(((e.clientY - r.top)/r.height)*2 - 1));
-      }else{
-        pointer.set(0,0);
+  // === Interaction ===
+  function setTooltip(on, x=0, y=0, item=null){
+    if(!on || !item){
+      tooltip.style.transform = "translate(-9999px,-9999px)";
+      return;
+    }
+    ttTitle.textContent = item.title || "Untitled";
+    ttSub.textContent = (item.category ? item.category + " • " : "") + (item.subtitle || "");
+    tooltip.style.transform = `translate(${x+14}px, ${y+14}px)`;
+  }
+
+  function pick(clientX, clientY){
+    const rect = renderer.domElement.getBoundingClientRect();
+    pointer.x = ((clientX - rect.left)/rect.width)*2 - 1;
+    pointer.y = -(((clientY - rect.top)/rect.height)*2 - 1);
+    raycaster.setFromCamera(pointer, camera);
+    const hits = raycaster.intersectObjects(group.children, true).filter(h => h.object.userData && h.object.userData.item);
+    return hits.length ? hits[0].object : null;
+  }
+
+  function openItem(item){
+    state.selected = item;
+    mTitle.textContent = item.title || "Untitled";
+    mSub.textContent = item.subtitle || "";
+    modalBody.innerHTML = "";
+
+    // image
+    if(item.image){
+      const box = document.createElement("div");
+      box.className = "media";
+      const img = document.createElement("img");
+      img.alt = item.title || "image";
+      img.src = item.image;
+      img.onerror = () => { img.style.display="none"; box.innerHTML = "<div style='padding:12px;color:var(--muted);font-size:12px'>Image missing. Check path + filename case in /assets/…</div>"; };
+      box.appendChild(img);
+      modalBody.appendChild(box);
+    }
+
+    // youtube embed
+    if(item.kind==="youtube" && item.youtube && item.youtube !== "PASTE_YOUTUBE_ID"){
+      const box = document.createElement("div");
+      box.className = "media";
+      const iframe = document.createElement("iframe");
+      iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+      iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(item.youtube)}?rel=0`;
+      box.appendChild(iframe);
+      modalBody.appendChild(box);
+    }
+
+    const meta = document.createElement("div");
+    meta.className = "panel";
+    meta.style.padding = "12px 14px";
+    meta.innerHTML = `
+      <div class="row">
+        <div style="color:var(--muted); font-size:12px; letter-spacing:.12em; text-transform:uppercase">${item.category || ""}</div>
+        <div style="color:var(--hair)">•</div>
+        <div style="color:var(--muted); font-size:12px">${item.kind || ""}</div>
+      </div>
+      <div style="margin-top:10px; color:var(--muted); font-size:12px; line-height:1.45">
+        This is a placeholder card. Replace it with real data, links, posters, photos, and audio in your repo.
+      </div>
+      <div class="row" style="margin-top:10px">
+        ${item.link ? `<a class="a" href="${item.link}" target="_blank" rel="noreferrer">Open link</a>` : ""}
+        ${item.audio ? `<span style="color:var(--muted); font-size:12px">Audio: ${item.audio}</span>` : ""}
+      </div>
+    `;
+    modalBody.appendChild(meta);
+
+    modal.style.display = "flex";
+    setAudioFocus(item);
+  }
+
+  function closeModal(){
+    modal.style.display = "none";
+    state.selected = null;
+    setAudioFocus(null);
+  }
+
+  closeBtn.addEventListener("click", closeModal);
+  modal.addEventListener("click", (e)=>{ if(e.target===modal) closeModal(); });
+
+  renderer.domElement.addEventListener("pointermove", (e)=>{
+    const obj = pick(e.clientX, e.clientY);
+    if(obj){
+      state.hovered = obj.userData.item;
+      setTooltip(true, e.clientX, e.clientY, state.hovered);
+      document.body.style.cursor = "pointer";
+      highlight(obj, true);
+    } else {
+      state.hovered = null;
+      setTooltip(false);
+      document.body.style.cursor = state.locked ? "none" : "default";
+      highlight(null, false);
+    }
+  });
+
+  renderer.domElement.addEventListener("click", (e)=>{
+    // If desktop and not locked, clicking enters room. Otherwise click selects.
+    if(!isMobile() && !state.locked){
+      lockPointer();
+      return;
+    }
+    const obj = pick(e.clientX, e.clientY);
+    if(obj && obj.userData && obj.userData.item){
+      openItem(obj.userData.item);
+    }
+  });
+
+  let lastHighlight = null;
+  function highlight(obj, on){
+    if(lastHighlight && lastHighlight.material){
+      lastHighlight.material.emissive && lastHighlight.material.emissive.setHex(0x000000);
+      lastHighlight.scale.set(1,1,1);
+    }
+    lastHighlight = obj;
+    if(obj && obj.material){
+      obj.material.emissive && obj.material.emissive.setHex(0x15153a);
+      obj.scale.set(1.03,1.03,1.03);
+    }
+  }
+
+  // === Buttons ===
+  enterBtn.addEventListener("click", ()=>{
+    if(isMobile()){
+      state.walking = true;
+      log("Mobile mode. Use pads to move and look.", "ok");
+    } else {
+      lockPointer();
+    }
+  });
+
+  resetBtn.addEventListener("click", ()=>{
+    unlockPointer();
+    camera.position.set(0, 1.6, 3.8);
+    yaw = 0; pitch = 0;
+    camera.rotation.set(pitch, yaw, 0);
+    setFilter("All");
+    log("Reset done.", "ok");
+  });
+
+  audioBtn.addEventListener("click", async ()=>{
+    initAudio();
+    if(!audio.ready) return;
+    // Resume context (mobile requires this)
+    try{ await audio.ctx.resume(); }catch(e){}
+    audio.enabled = !audio.enabled;
+    state.audioEnabled = audio.enabled;
+    audioBtn.textContent = "Audio: " + (audio.enabled ? "ON" : "OFF");
+    audioBtn.classList.toggle("good", audio.enabled);
+    audioBtn.classList.toggle("bad", !audio.enabled);
+    if(audio.enabled){
+      log("Audio ON. Click a poster to focus its sound.", "ok");
+      setAudioFocus(state.selected || state.hovered);
+    } else {
+      log("Audio OFF.", "muted");
+      setAudioFocus(null);
+      for(const n of audio.nodes.values()){
+        n.gain.gain.setTargetAtTime(0, audio.ctx.currentTime, 0.06);
+        n.el.pause();
+        n.el.currentTime = 0;
       }
-      const hit = findHit();
-      if(hit) openModal(hit.item);
+    }
+  });
+
+  helpBtn.addEventListener("click", ()=>{
+    openItem({
+      title:"Help / Why it was black",
+      subtitle:"Because browsers are strict and files go missing when humans blink.",
+      category:"Help",
+      kind:"info",
+      image:"",
+      link:"",
+      audio:"",
+      note:""
     });
-
-    // Spatial audio
-    class SpatialAudioEngine{
-      constructor(){ this.ctx=null; this.master=null; this.ready=false; this.sources=new Map(); }
-      async start(){
-        if(this.ready) return true;
-        try{
-          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-          await this.ctx.resume();
-          this.master = this.ctx.createGain();
-          this.master.gain.value = 0.9;
-          this.master.connect(this.ctx.destination);
-          this.ready = true;
-          return true;
-        }catch(e){
-          log(statusEl.textContent + "\nAudio start failed: " + e);
-          return false;
-        }
-      }
-      stopAll(){ for(const [,s] of this.sources){ try{s.node?.stop?.()}catch{} } this.sources.clear(); }
-      async rebuild(){
-        if(!this.ready) return;
-        this.stopAll();
-        for(const p of posters){
-          const item = p.item;
-          if(item.kind !== "audio") continue;
-          await this._createEmitter(item, p.group);
-        }
-      }
-      async _createEmitter(item, group){
-        const panner = this.ctx.createPanner();
-        panner.panningModel = "HRTF";
-        panner.distanceModel = "inverse";
-        panner.refDistance = 1.4;
-        panner.maxDistance = 10;
-        panner.rolloffFactor = 1.2;
-
-        const gain = this.ctx.createGain();
-        gain.gain.value = 0.0;
-        panner.connect(gain);
-        gain.connect(this.master);
-
-        let node=null;
-        if(item.audio){
-          try{
-            const res = await fetch(item.audio);
-            const arr = await res.arrayBuffer();
-            const buf = await this.ctx.decodeAudioData(arr);
-            const src = this.ctx.createBufferSource();
-            src.buffer = buf;
-            src.loop = true;
-            src.connect(panner);
-            src.start();
-            node = src;
-          }catch(e){
-            node = this._fallbackOsc(panner);
-          }
-        }else{
-          node = this._fallbackOsc(panner);
-        }
-        this.sources.set(item.id, { item, group, panner, gain, node });
-      }
-      _fallbackOsc(target){
-        const osc = this.ctx.createOscillator();
-        osc.type="triangle";
-        osc.frequency.value = 220 + Math.random()*140;
-        const g = this.ctx.createGain();
-        g.gain.value = 0.08;
-        osc.connect(g); g.connect(target);
-        osc.start();
-        return osc;
-      }
-      update(cam){
-        if(!this.ready) return;
-        const L = this.ctx.listener;
-        const p = cam.position;
-        if(L.positionX){
-          L.positionX.value = p.x; L.positionY.value = p.y; L.positionZ.value = p.z;
-          const fwd = new THREE.Vector3(0,0,-1).applyQuaternion(cam.quaternion);
-          const up  = new THREE.Vector3(0,1,0).applyQuaternion(cam.quaternion);
-          L.forwardX.value=fwd.x; L.forwardY.value=fwd.y; L.forwardZ.value=fwd.z;
-          L.upX.value=up.x; L.upY.value=up.y; L.upZ.value=up.z;
-        }
-        for(const [,s] of this.sources){
-          const wp = new THREE.Vector3();
-          s.group.getWorldPosition(wp);
-          s.panner.positionX.value = wp.x;
-          s.panner.positionY.value = wp.y;
-          s.panner.positionZ.value = wp.z;
-          const d = wp.distanceTo(cam.position);
-          const v = Math.max(0, 1 - d/4);
-          s.gain.gain.value = v*v*0.9;
-        }
-      }
-    }
-    const audioEngine = new SpatialAudioEngine();
-
-    audioBtn.addEventListener("click", async ()=>{
-      const ok = await audioEngine.start();
-      if(ok){
-        audioBtn.textContent = "Audio on";
-        audioEngine.rebuild();
-      }else{
-        audioBtn.textContent = "Audio blocked";
-      }
-    });
-
-    fsBtn.addEventListener("click", async ()=>{
-      try{
-        if(!document.fullscreenElement) await document.documentElement.requestFullscreen();
-        else await document.exitFullscreen();
-      }catch{}
-    });
-
-    helpBtn.addEventListener("click", ()=>{
-      openModal({ title:"Help", category:"Help", kind:"info", subtitle:"If it’s black", note:"" });
-      mBody.innerHTML = `
-        <p><b>Common causes of “black screen with UI”:</b></p>
-        <ol>
-          <li><b>three.js blocked</b> (CSP/network). The status box will say so.</li>
-          <li><b>WebGL disabled</b> (browser flags / GPU driver). Try another browser/device.</li>
-          <li><b>Images not loading</b> because GitHub Pages is <b>case-sensitive</b>. Check DevTools → Network for 404.</li>
-        </ol>
-        <div class="mediaBox">
-          <div class="mono" style="font-size:12px; color:rgba(244,244,246,.85)">
-            <b>Paths should look like:</b><br/>
-            <code>./assets/posters/thelma.jpg</code><br/>
-            <code>./assets/photos/photo01.jpg</code><br/>
-            <code>./assets/audio/track01.mp3</code>
+    modalBody.innerHTML = `
+      <div class="panel" style="padding:12px 14px">
+        <div style="color:var(--muted); font-size:12px; line-height:1.55">
+          <b>Most common causes:</b>
+          <ol>
+            <li><b>Missing library</b>: If three.js doesn’t load, you get UI only.</li>
+            <li><b>Missing assets</b>: GitHub Pages is <b>case-sensitive</b>. <code>Poster.jpg</code> ≠ <code>poster.jpg</code>.</li>
+            <li><b>Wrong paths</b>: Use <code>./assets/…</code> not <code>/assets/…</code> if you host under a subpath.</li>
+            <li><b>PointerLock</b>: Desktop needs a click to lock the mouse. Press <b>Esc</b> to unlock.</li>
+          </ol>
+          <div style="margin-top:10px">
+            If you still see black screen, open DevTools → Console/Network and look for red errors/404s.
           </div>
         </div>
-        <div class="hr"></div>
-        <p><b>Controls:</b> Desktop: click Enter room → WASD. Press <b>E</b> to open highlighted poster.<br/>Mobile: drag to look, joystick to move, tap posters.</p>
-      `;
-    });
+      </div>
+    `;
+    modal.style.display = "flex";
+  });
 
-    // Movement
-    const v = new THREE.Vector3();
-    const forward = new THREE.Vector3();
-    const right = new THREE.Vector3();
+  // nav sign interactions (pure UI)
+  document.getElementById("nav").addEventListener("click", (e)=>{
+    const t = e.target.closest(".navlink");
+    if(!t) return;
+    const k = t.dataset.nav;
+    if(k==="creator"){
+      flipSign(state.filter);
+      log("Creator: director / producer / scriptwriter. (You can write the real bio here.)", "ok");
+    }
+    if(k==="creations"){
+      flipSign(state.filter);
+      log("Creations: posters, photos, music, videos.", "ok");
+    }
+    if(k==="create"){
+      flipSign(state.filter);
+      log("Create: add new items to the GALLERY array and drop assets into /assets/.", "ok");
+    }
+  });
 
-    function move(dt){
-      if(!walking) return;
-      const base = keys.shift ? 4.4 : 2.9;
-      const f = (keys.w?1:0) - (keys.s?1:0);
-      const s = (keys.d?1:0) - (keys.a?1:0);
-      const jf = -moveStick.y;
-      const js = moveStick.x;
+  // === Render loop ===
+  function move(dt){
+    const base = (keys.shift ? 4.4 : 2.8);
+    let f = (keys.w?1:0) - (keys.s?1:0);
+    let s = (keys.d?1:0) - (keys.a?1:0);
 
-      const mf = THREE.MathUtils.clamp(f + jf, -1, 1);
-      const ms = THREE.MathUtils.clamp(s + js, -1, 1);
+    if(isMobile()){
+      // stickMove y is down positive; invert for forward
+      const mv = stickVector(stickMove);
+      f += -mv.y;
+      s += mv.x;
 
-      const yaw = camera.rotation.y;
-      forward.set(-Math.sin(yaw), 0, -Math.cos(yaw));
-      right.set(Math.cos(yaw), 0, -Math.sin(yaw));
+      const lk = stickVector(stickLook);
+      yaw -= lk.x * 0.08 * dt;
+      pitch -= lk.y * 0.08 * dt;
+      pitch = Math.max(-Math.PI/2 + 0.06, Math.min(Math.PI/2 - 0.06, pitch));
+      camera.rotation.set(pitch, yaw, 0);
+    }
 
-      v.set(0,0,0);
-      v.addScaledVector(forward, mf);
-      v.addScaledVector(right, ms);
-      if(v.lengthSq() > 0.0001) v.normalize();
+    // direction vectors from yaw
+    dir.set(0,0,-1).applyAxisAngle(new THREE.Vector3(0,1,0), yaw);
+    right.set(1,0,0).applyAxisAngle(new THREE.Vector3(0,1,0), yaw);
 
-      camera.position.addScaledVector(v, base*dt);
+    vel.set(0,0,0);
+    vel.addScaledVector(dir, f * base);
+    vel.addScaledVector(right, s * base);
+
+    if(vel.lengthSq() > 0.00001){
+      camera.position.addScaledVector(vel, dt);
       clampToRoom();
     }
+  }
 
-    // Resize
-    addEventListener("resize", ()=>{
-      renderer.setSize(innerWidth, innerHeight);
-      camera.aspect = innerWidth/innerHeight;
-      camera.updateProjectionMatrix();
-      updateJoystickVisibility();
-    });
+  function tick(now){
+    const dt = Math.min(0.033, (tick.last ? (now - tick.last)/1000 : 0.016));
+    tick.last = now;
 
-    // Asset sanity check (detects 404s)
-    function sanityCheckAssets(){
-      const items = GALLERY.slice(0, 6);
-      const missing = [];
-      const checks = [];
-      for(const it of items){
-        if(it.kind === "image" && it.image){
-          checks.push(checkImage(it.image).catch(()=>missing.push(it.image)));
-        }
-        if(it.kind === "audio" && it.audio){
-          checks.push(fetch(it.audio, { cache:"no-store" }).then(r=>{ if(!r.ok) missing.push(it.audio); }).catch(()=>missing.push(it.audio)));
-        }
-      }
-      Promise.allSettled(checks).then(()=>{
-        if(missing.length){
-          log(statusEl.textContent + "\nMissing assets detected (404):\n- " + missing.join("\n- ") + "\n\nFix: Check case-sensitive filenames + folder paths.");
-        }
-      });
-    }
-    function checkImage(url){
-      return new Promise((resolve, reject)=>{
-        const img = new Image();
-        img.onload = ()=>resolve(true);
-        img.onerror = ()=>reject(new Error("missing"));
-        img.src = url + (url.includes("?") ? "&" : "?") + "v=" + Date.now();
-      });
-    }
-    sanityCheckAssets();
+    move(dt);
+    updateAudioListener();
 
-    // Render loop
-    let last = performance.now();
-    function tick(now){
-      const dt = Math.min(0.033, (now-last)/1000);
-      last = now;
-      move(dt);
-      updateHover();
-      if(walking) camera.position.y = 1.6 + Math.sin(now*0.006)*0.02;
-      audioEngine.update(camera);
-      renderer.render(scene, camera);
-      requestAnimationFrame(tick);
+    // subtle breathing bob when walking/locked
+    if(state.walking || state.locked){
+      camera.position.y = 1.6 + Math.sin(now*0.006)*0.02;
     }
+
+    renderer.render(scene, camera);
     requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
 
-    // Initial status
-    log("OK: three.js loaded\nOK: WebGL renderer created\n\nIf posters are placeholders: your image paths are wrong or 404.\nOpen Help for the brutal truth.");
+  // Resize
+  addEventListener("resize", ()=>{
+    renderer.setSize(innerWidth, innerHeight);
+    camera.aspect = innerWidth/innerHeight;
+    camera.updateProjectionMatrix();
+    updatePads();
+  });
 
-  })();
-  </script>
+  // Initial UI anim
+  if(window.gsap){
+    gsap.fromTo("#brand", { y:-10, opacity:0 }, { y:0, opacity:1, duration:0.5, ease:"power2.out" });
+    gsap.fromTo("#leftbar > .panel", { x:-12, opacity:0 }, { x:0, opacity:1, duration:0.6, ease:"power2.out", stagger:0.08 });
+    gsap.fromTo("#hint", { y:12, opacity:0 }, { y:0, opacity:1, duration:0.6, ease:"power2.out", delay:0.15 });
+  }
+
+  log("WebGL running. Posters: " + posters.length + "\nIf images are blank, your ./assets paths are wrong or 404.", "ok");
+  flipSign("All");
+})();
+</script>
 </body>
 </html>
