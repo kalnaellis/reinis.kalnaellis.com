@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Kalnaellis • Room</title>
+  <title>Reinis Kalnaellis • WebGL Gallery Room</title>
   <style>
     :root{
       --bg:#070710;
@@ -214,7 +214,7 @@
   // Typed intro (fails silently if typed.js doesn't load)
   try{
     new Typed("#typed", {
-      strings: ["filmmaker", "reinis.kalnaellis", "photographer", "digital artist"],
+      strings: ["filmmaker", "photographer", "digital artist", "events"],
       typeSpeed: 36,
       backSpeed: 18,
       backDelay: 1100,
@@ -231,7 +231,7 @@
   const GALLERY = [
     // FILM
     { id:"thelma", category:"Film", kind:"poster", title:"Thelma’s Perfect Birthday", subtitle:"Feature animation • trailer & posters", image:"./assets/posters/thelma.jpg", link:"https://rijafilms.com", audio:"./assets/audio/thelma_theme.mp3" },
-    { id:"hugo", category:"Film", kind:"poster", title:"Singing Hugo & His Incredible Adventures", subtitle:"Feature animation • access portal", image:"./assets/posters/ktv-commingsoon.gif", link:"https://kartupelis.tv", audio:"./assets/audio/hugo_loop.mp3" },
+    { id:"hugo", category:"Film", kind:"poster", title:"Singing Hugo & His Incredible Adventures", subtitle:"Feature animation • access portal", image:"./assets/posters/hugo.jpg", link:"https://reinis.kalnaellis.com", audio:"./assets/audio/hugo_loop.mp3" },
     { id:"potato", category:"Film", kind:"poster", title:"A Potato Man with Big Dreams", subtitle:"Satire / IP • pitch & dev", image:"./assets/posters/potato.jpg", link:"https://rijafilms.com", audio:"./assets/audio/potato_beat.mp3" },
 
     // PHOTO
@@ -245,7 +245,7 @@
     { id:"label", category:"Music", kind:"music", title:"Record Label (prototype)", subtitle:"Digital-first micro releases", image:"./assets/music/cover03.jpg", link:"#", audio:"./assets/audio/beat03.mp3" },
 
     // YOUTUBE
-    { id:"yt1", category:"YouTube", kind:"youtube", title:"Rija Films Channel", subtitle:"Trailers / BTS / shorts", image:"./assets/youtube/yt01.jpg", youtube:"cLRh7Q0J3v4", link:"https://www.youtube.com/@rijafilms", audio:"./assets/audio/roomtone.mp3" },
+    { id:"yt1", category:"YouTube", kind:"youtube", title:"Rija Films Channel", subtitle:"Trailers / BTS / shorts", image:"./assets/youtube/yt01.jpg", youtube:"PASTE_YOUTUBE_ID", link:"https://www.youtube.com/@rijafilms", audio:"./assets/audio/roomtone.mp3" },
     { id:"yt2", category:"YouTube", kind:"youtube", title:"Process Vlog", subtitle:"Chaos, but cinematic", image:"./assets/youtube/yt02.jpg", youtube:"PASTE_YOUTUBE_ID", link:"#", audio:"./assets/audio/roomtone.mp3" },
 
     // EVENTS
@@ -253,9 +253,8 @@
     { id:"retreat", category:"Events", kind:"event", title:"Valmiera Riverside Retreat", subtitle:"A place to breathe and work", image:"./assets/events/event02.jpg", link:"#", audio:"./assets/audio/roomtone.mp3" },
 
     // DIGITAL ART
-    { id:"vr", category:"Digital Art", kind:"digital", title:"VR / AR Playground", subtitle:"Interactive rooms & artifacts", image:"./assets/digital/digital01.png", link:"#", audio:"./assets/audio/roomtone.mp3" },
-    { id:"webgl", category:"Digital Art", kind:"digital", title:"WebGL Experiments", subtitle:"Shaders, scrolling, and questionable ideas", image:"./assets/digital/digital02.png", link:"#", audio:"./assets/audio/roomtone.mp3" },
-    { id:"webgl", category:"Digital Art", kind:"digital", title:"AI EXPERIMents", subtitle:"Shaders, scrolling, and questionable ideas", image:"./assets/digital/digital03.png", link:"#", audio:"./assets/audio/roomtone.mp3" },
+    { id:"vr", category:"Digital Art", kind:"digital", title:"VR / AR Playground", subtitle:"Interactive rooms & artifacts", image:"./assets/digital/digital01.jpg", link:"#", audio:"./assets/audio/roomtone.mp3" },
+    { id:"webgl", category:"Digital Art", kind:"digital", title:"WebGL Experiments", subtitle:"Shaders, scrolling, and questionable ideas", image:"./assets/digital/digital02.jpg", link:"#", audio:"./assets/audio/roomtone.mp3" },
   ];
 
   const CATEGORIES = ["All", ...Array.from(new Set(GALLERY.map(x => x.category)))];
@@ -340,6 +339,7 @@
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
   const posters = []; // {mesh, item, panner?}
+  const animatedGifs = []; // textures that need needsUpdate for animated GIFs
   const group = new THREE.Group();
   scene.add(group);
 
@@ -400,6 +400,30 @@
     ctx.fillText(line, x, y);
   }
 
+  function isGif(url){
+    return !!url && /\.gif(\?|#|$)/i.test(url);
+  }
+
+  // Fit a given aspect ratio inside a bounding box, preserving aspect ratio.
+  function fitAspect(aspect, bounds){
+    const maxW = bounds.maxW, maxH = bounds.maxH;
+    if(!isFinite(aspect) || aspect <= 0){
+      return { w: Math.min(maxW, maxH), h: Math.min(maxW, maxH) };
+    }
+    let h = maxH;
+    let w = h * aspect;
+    if(w > maxW){
+      w = maxW;
+      h = w / aspect;
+    }
+    if(h > maxH){
+      h = maxH;
+      w = h * aspect;
+    }
+    return { w, h };
+  }
+
+
   function placeItems(items){
     // Layout: posters on walls around the room, evenly spaced.
     // Walls: z = ±(ROOM.d/2 - 0.02), x = ±(ROOM.w/2 - 0.02)
@@ -414,8 +438,24 @@
     function addOnWall(count, wall){
       for(let i=0;i<count && idx<items.length;i++,idx++){
         const item = items[idx];
-        const size = item.kind==="photo" ? [1.3,1.3] : item.kind==="music" ? [1.25,1.25] : [1.65,1.05];
-        const w = size[0], h = size[1];
+        // Choose a bounding box by type, then preserve the *original* image aspect ratio when the texture loads.
+        const bounds = (()=>{
+          switch(item.kind){
+            case "photo":   return { maxW: 1.35, maxH: 1.35 };
+            case "music":   return { maxW: 1.35, maxH: 1.35 };
+            case "youtube": return { maxW: 1.85, maxH: 1.10 };
+            case "event":   return { maxW: 1.55, maxH: 1.55 };
+            case "digital": return { maxW: 1.55, maxH: 1.35 };
+            case "poster":
+            default:        return { maxW: 1.40, maxH: 1.95 };
+          }
+        })();
+
+        const initialAspect = item.kind==="youtube" ? (16/9)
+                           : item.kind==="poster" ? (2/3)
+                           : 1;
+        const dims = fitAspect(initialAspect, bounds);
+        const w = dims.w, h = dims.h;
         const geo = new THREE.PlaneGeometry(w, h);
         const placeholder = makePlaceholderTexture(item);
         const mat = new THREE.MeshStandardMaterial({ map: placeholder, roughness:0.65, metalness:0.0, emissive:0x000000 });
@@ -427,6 +467,8 @@
         const frame = new THREE.Mesh(frameGeo, frameMat);
         frame.position.z = -0.03;
         mesh.add(frame);
+        mesh.userData.frame = frame;
+        mesh.userData.bounds = bounds;
 
         // position on chosen wall
         const t = count<=1 ? 0.5 : i/(count-1);
@@ -460,6 +502,31 @@
               tex.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
               mat.map = tex;
               mat.needsUpdate = true;
+
+              // Preserve the original aspect ratio by resizing the poster surface (and frame) to fit within its bounds.
+              const img = tex.image;
+              if(img && img.width && img.height){
+                const aspect = img.width / img.height;
+                const b = mesh.userData.bounds || { maxW: 1.4, maxH: 1.4 };
+                const d = fitAspect(aspect, b);
+
+                // Update surface geometry
+                mesh.geometry.dispose();
+                mesh.geometry = new THREE.PlaneGeometry(d.w, d.h);
+
+                // Update frame geometry
+                const fr = mesh.userData.frame;
+                if(fr){
+                  fr.geometry.dispose();
+                  fr.geometry = new THREE.BoxGeometry(d.w + 0.08, d.h + 0.08, 0.05);
+                  fr.position.z = -0.03;
+                }
+              }
+
+              // Animated GIF support: GIF frames won't update on the GPU unless we mark needsUpdate repeatedly.
+              if(isGif(item.image)){
+                if(!animatedGifs.includes(tex)) animatedGifs.push(tex);
+              }
             },
             undefined,
             ()=>{ /* keep placeholder */ }
@@ -959,6 +1026,14 @@
     // subtle breathing bob when walking/locked
     if(state.walking || state.locked){
       camera.position.y = 1.6 + Math.sin(now*0.006)*0.02;
+    }
+
+    // Animated GIF textures: keep uploading frames (throttled ~30fps)
+    if(animatedGifs.length){
+      if(!tick._gifT || (now - tick._gifT) > 33){
+        tick._gifT = now;
+        for(const t of animatedGifs) t.needsUpdate = true;
+      }
     }
 
     renderer.render(scene, camera);
